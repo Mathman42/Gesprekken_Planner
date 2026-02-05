@@ -25,6 +25,12 @@ export const MagicLinkVerify = ({ token }: MagicLinkVerifyProps) => {
           login(result.email, 'parent', token);
           setStatus('success');
           setMessage('U bent succesvol ingelogd!');
+
+          // Redirect after 1.5 seconds
+          setTimeout(() => {
+            window.history.pushState({}, '', '/');
+            window.location.reload();
+          }, 1500);
         } else {
           setStatus('error');
           setMessage('Deze link is ongeldig of verlopen.');

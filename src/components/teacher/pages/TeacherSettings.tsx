@@ -42,8 +42,8 @@ export const TeacherSettings = () => {
 
     if (settingsData) {
       setSettings({
-        slotDuration: settingsData.slot_duration || 15,
-        bufferTime: settingsData.buffer_time || 5,
+        slotDuration: settingsData.slot_duration ?? 15,
+        bufferTime: settingsData.buffer_time ?? 5,
       });
     } else {
       await supabase.from('teacher_settings').insert({

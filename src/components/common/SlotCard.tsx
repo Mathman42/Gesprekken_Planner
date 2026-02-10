@@ -23,7 +23,7 @@ export default function SlotCard({
       case 'available':
         return 'bg-white border-gray-300';
       case 'blocked':
-        return 'bg-gray-100 border-gray-500';
+        return 'border-gray-500';
       case 'booked':
         return viewMode === 'teacher' ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400';
       case 'selected':
@@ -31,6 +31,13 @@ export default function SlotCard({
       default:
         return 'bg-white border-gray-300';
     }
+  };
+
+  const getInlineStyle = () => {
+    if (status === 'blocked') {
+      return { backgroundColor: '#858585' };
+    }
+    return {};
   };
 
   const getIcon = () => {
@@ -59,10 +66,10 @@ export default function SlotCard({
         return (
           <button
             onClick={onAction}
-            className="ml-auto p-1 rounded hover:bg-gray-200 transition-colors"
+            className="ml-auto p-1 rounded hover:bg-gray-700 transition-colors"
             title="Klik om te deblokkeren"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-white" />
           </button>
         );
       }
@@ -99,6 +106,7 @@ export default function SlotCard({
       className={`border-2 rounded-lg p-3 flex items-center transition-all ${getBackgroundColor()} ${
         status === 'available' && viewMode === 'parent' ? 'hover:border-blue-400 cursor-pointer' : ''
       }`}
+      style={getInlineStyle()}
       onClick={
         status === 'available' && viewMode === 'parent' && onAction
           ? onAction
@@ -107,7 +115,7 @@ export default function SlotCard({
     >
       <div className="flex items-center flex-1">
         {getIcon()}
-        <div className={`${getIcon() ? 'ml-2' : ''} font-medium`}>
+        <div className={`${getIcon() ? 'ml-2' : ''} font-medium ${status === 'blocked' ? 'text-white' : ''}`}>
           {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
         </div>
         {getStatusText()}

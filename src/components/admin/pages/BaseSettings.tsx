@@ -38,8 +38,8 @@ export const BaseSettings = () => {
       }, {} as Record<string, any>);
 
       setSettings({
-        slotDuration: settingsMap.slot_duration || 15,
-        bufferTime: settingsMap.buffer_time || 0,
+        slotDuration: settingsMap.slot_duration ?? 15,
+        bufferTime: settingsMap.buffer_time ?? 0,
         captchaEnabled: settingsMap.captcha_enabled === true,
         sendConfirmation: settingsMap.send_booking_confirmation !== false,
       });

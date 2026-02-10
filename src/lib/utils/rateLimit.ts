@@ -1,16 +1,18 @@
 import { supabase } from '../supabase';
 
+// TEST CONFIGURATION: Set to 1 minute for testing phase
+// Production should use hours instead of minutes
 const MAX_REQUESTS_PER_IP = 3;
 const MAX_REQUESTS_PER_EMAIL = 5;
-const RATE_LIMIT_WINDOW_HOURS = 1;
+const RATE_LIMIT_WINDOW_MINUTES = 1;
 
 export const checkRateLimit = async (
   ipAddress: string,
   email: string | null,
   actionType: string
 ): Promise<{ allowed: boolean; reason?: string }> => {
-  const oneHourAgo = new Date();
-  oneHourAgo.setHours(oneHourAgo.getHours() - RATE_LIMIT_WINDOW_HOURS);
+  const windowStart = new Date();
+  windowStart.setMinutes(windowStart.getMinutes() - RATE_LIMIT_WINDOW_MINUTES);
 
   // Check IP-based rate limit
   const { data: ipLogs, error: ipError } = await supabase
@@ -18,7 +20,7 @@ export const checkRateLimit = async (
     .select('*')
     .eq('ip_address', ipAddress)
     .eq('action_type', actionType)
-    .gte('created_at', oneHourAgo.toISOString());
+    .gte('created_at', windowStart.toISOString());
 
   if (ipError) {
     console.error('Error checking IP rate limit:', ipError);
@@ -39,7 +41,7 @@ export const checkRateLimit = async (
       .select('*')
       .eq('email', email)
       .eq('action_type', actionType)
-      .gte('created_at', oneHourAgo.toISOString());
+      .gte('created_at', windowStart.toISOString());
 
     if (emailError) {
       console.error('Error checking email rate limit:', emailError);

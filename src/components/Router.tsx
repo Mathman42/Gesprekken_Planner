@@ -169,7 +169,10 @@ export const Router = () => {
             setPasswordChangeData({ email, userType: 'parent' });
             setCurrentPage('password-change');
           } else {
-            window.location.reload();
+            login(email, 'parent');
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           }
         }}
       />

@@ -44,7 +44,17 @@ export const Router = () => {
       return;
     }
 
-    // Route based on authentication state FIRST
+    // Check URL for token parameter BEFORE checking auth (allow verification page)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (token && !isAuthenticated) {
+      setVerifyToken(token);
+      setCurrentPage('verify');
+      return;
+    }
+
+    // Route based on authentication state
     if (isAuthenticated) {
       if (role === 'admin') {
         setCurrentPage('admin-dashboard');
@@ -53,16 +63,6 @@ export const Router = () => {
       } else if (role === 'parent') {
         setCurrentPage('parent-booking');
       }
-      return;
-    }
-
-    // Check URL for token parameter (only if not authenticated)
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-
-    if (token) {
-      setVerifyToken(token);
-      setCurrentPage('verify');
       return;
     }
 

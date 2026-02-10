@@ -28,10 +28,8 @@ export const MagicLinkVerify = ({ token }: MagicLinkVerifyProps) => {
           setStatus('success');
           setMessage('U bent succesvol ingelogd!');
 
-          // Clear the token from URL and reload after 1 second
           setTimeout(() => {
             window.history.replaceState({}, '', '/');
-            window.location.href = '/';
           }, 1000);
         } else {
           setStatus('error');

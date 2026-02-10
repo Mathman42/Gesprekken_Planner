@@ -29,13 +29,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         }
       } else {
-        setAuthState({
-          isAuthenticated: false,
-          role: null,
-          email: null,
-          magicLinkToken: null,
-        });
-        clearAuthState();
+        const stored = getAuthState();
+        if (stored.role === 'parent' && stored.isAuthenticated) {
+          setAuthState(stored);
+        } else if (stored.role === 'admin' || stored.role === 'teacher') {
+          setAuthState({
+            isAuthenticated: false,
+            role: null,
+            email: null,
+            magicLinkToken: null,
+          });
+          clearAuthState();
+        } else if (!stored.isAuthenticated) {
+          setAuthState(stored);
+        }
       }
       setLoading(false);
     });

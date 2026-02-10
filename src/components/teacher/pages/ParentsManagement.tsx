@@ -94,7 +94,7 @@ export const ParentsManagement = () => {
 
       const defaultTemplate = `Onderwerp: Uitnodiging voortgangsgesprek
 
-Beste [naam-ouder],
+Beste ouder/verzorger,
 
 U bent uitgenodigd om een voortgangsgesprek in te plannen.
 Klik op de link hieronder om een datum en tijd te kiezen.
@@ -138,7 +138,7 @@ Met vriendelijke groet,
   const resetToDefaultTemplate = () => {
     const defaultTemplate = `Onderwerp: Uitnodiging voortgangsgesprek
 
-Beste [naam-ouder],
+Beste ouder/verzorger,
 
 U bent uitgenodigd om een voortgangsgesprek in te plannen.
 Klik op de link hieronder om een datum en tijd te kiezen.
@@ -326,16 +326,24 @@ Met vriendelijke groet,
     const loginUrl = `${window.location.origin}/parent-login`;
     let successCount = 0;
     let failCount = 0;
+    const errors: string[] = [];
 
     for (const parent of selectedParentsList) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session?.access_token) {
+          errors.push(`Geen sessie gevonden. Log opnieuw in.`);
+          failCount++;
+          continue;
+        }
+
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invitation`,
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${session?.access_token}`,
+              'Authorization': `Bearer ${session.access_token}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -351,23 +359,38 @@ Met vriendelijke groet,
 
         if (response.ok) {
           successCount++;
+          console.log(`Email succesvol verstuurd naar ${parent.email}`);
         } else {
           failCount++;
-          console.error(`Failed to send to ${parent.email}:`, await response.text());
+          const errorText = await response.text();
+          let errorDetail = '';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetail = errorJson.error || errorJson.message || 'Onbekende fout';
+          } catch {
+            errorDetail = errorText || 'Onbekende fout';
+          }
+          errors.push(`${parent.email}: ${errorDetail}`);
+          console.error(`Failed to send to ${parent.email}:`, errorDetail);
         }
       } catch (err) {
         failCount++;
+        const errorMessage = err instanceof Error ? err.message : 'Onbekende fout';
+        errors.push(`${parent.email}: ${errorMessage}`);
         console.error(`Error sending to ${parent.email}:`, err);
       }
     }
 
     setSubmitting(false);
 
-    if (successCount > 0) {
-      setSuccess(`${successCount} uitnodiging(en) succesvol verstuurd${failCount > 0 ? `, ${failCount} mislukt` : ''}`);
+    if (successCount > 0 && failCount === 0) {
+      setSuccess(`${successCount} uitnodiging(en) succesvol verstuurd!`);
+      setSelectedParents(new Set());
+    } else if (successCount > 0 && failCount > 0) {
+      setError(`${successCount} geslaagd, ${failCount} mislukt. Details: ${errors.join('; ')}`);
       setSelectedParents(new Set());
     } else {
-      setError('Alle uitnodigingen zijn mislukt. Controleer de console voor details.');
+      setError(`Alle uitnodigingen zijn mislukt. Details: ${errors.join('; ')}`);
     }
   };
 

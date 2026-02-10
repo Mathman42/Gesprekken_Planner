@@ -44,7 +44,19 @@ export const Router = () => {
       return;
     }
 
-    // Check URL for token parameter
+    // Route based on authentication state FIRST
+    if (isAuthenticated) {
+      if (role === 'admin') {
+        setCurrentPage('admin-dashboard');
+      } else if (role === 'teacher') {
+        setCurrentPage('teacher-dashboard');
+      } else if (role === 'parent') {
+        setCurrentPage('parent-booking');
+      }
+      return;
+    }
+
+    // Check URL for token parameter (only if not authenticated)
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
 
@@ -54,18 +66,8 @@ export const Router = () => {
       return;
     }
 
-    // Route based on authentication state
-    if (isAuthenticated) {
-      if (role === 'admin') {
-        setCurrentPage('admin-dashboard');
-      } else if (role === 'teacher') {
-        setCurrentPage('teacher-dashboard');
-      } else if (role === 'parent') {
-        setCurrentPage('parent-booking');
-      }
-    } else {
-      setCurrentPage('home');
-    }
+    // Default to home if not authenticated
+    setCurrentPage('home');
   }, [isAuthenticated, role]);
 
   // Update URL without page reload

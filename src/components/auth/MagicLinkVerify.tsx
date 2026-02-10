@@ -22,15 +22,17 @@ export const MagicLinkVerify = ({ token }: MagicLinkVerifyProps) => {
         if (result.valid && result.email) {
           const ip = getClientIP();
           await logActivity('magic_link_used', result.email, ip, { token });
+
           login(result.email, 'parent', token);
+
           setStatus('success');
           setMessage('U bent succesvol ingelogd!');
 
-          // Redirect after 1.5 seconds
+          // Clear the token from URL and reload after 1 second
           setTimeout(() => {
-            window.history.pushState({}, '', '/');
-            window.location.reload();
-          }, 1500);
+            window.history.replaceState({}, '', '/');
+            window.location.href = '/';
+          }, 1000);
         } else {
           setStatus('error');
           setMessage('Deze link is ongeldig of verlopen.');

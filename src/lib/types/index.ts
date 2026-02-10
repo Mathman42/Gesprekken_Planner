@@ -20,6 +20,13 @@ export type ActivityLogInsert = Database['public']['Tables']['activity_log']['In
 
 export type Setting = Database['public']['Tables']['settings']['Row'];
 
+export type Teacher = Database['public']['Tables']['teachers']['Row'];
+export type TeacherInsert = Database['public']['Tables']['teachers']['Insert'];
+
+export type TeacherAvailability = Database['public']['Tables']['teacher_availability']['Row'];
+export type TeacherAvailabilityInsert = Database['public']['Tables']['teacher_availability']['Insert'];
+export type TeacherAvailabilityUpdate = Database['public']['Tables']['teacher_availability']['Update'];
+
 export interface TimeSlotWithBooking extends TimeSlot {
   booking?: Booking | null;
 }
@@ -30,7 +37,7 @@ export interface EventWithStats extends Event {
   available_slots: number;
 }
 
-export type UserRole = 'admin' | 'parent';
+export type UserRole = 'admin' | 'parent' | 'teacher';
 
 export interface AuthState {
   isAuthenticated: boolean;

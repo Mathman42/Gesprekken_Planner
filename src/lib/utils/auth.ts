@@ -36,6 +36,30 @@ export const verifyAdminPassword = async (email: string, password: string): Prom
   return true;
 };
 
+export const verifyTeacherPassword = async (email: string, password: string): Promise<boolean> => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    return false;
+  }
+
+  // Verify that the user is a teacher
+  const { data: teacherData, error: teacherError } = await supabase
+    .from('teachers')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (teacherError || !teacherData) {
+    return false;
+  }
+
+  return true;
+};
+
 export const generateMagicToken = (): string => {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)))
     .map((b) => b.toString(16).padStart(2, '0'))

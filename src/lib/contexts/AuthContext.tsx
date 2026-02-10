@@ -4,7 +4,7 @@ import { getAuthState, saveAuthState, clearAuthState } from '../utils/auth';
 import { supabase } from '../supabase';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, role: 'admin' | 'parent', magicLinkToken?: string) => void;
+  login: (email: string, role: 'admin' | 'parent' | 'teacher', magicLinkToken?: string) => void;
   logout: () => void;
 }
 
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAuthState(stored);
   }, []);
 
-  const login = (email: string, role: 'admin' | 'parent', magicLinkToken?: string) => {
+  const login = (email: string, role: 'admin' | 'parent' | 'teacher', magicLinkToken?: string) => {
     const newState: AuthState = {
       isAuthenticated: true,
       role,

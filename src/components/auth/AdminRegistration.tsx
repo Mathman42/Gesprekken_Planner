@@ -4,9 +4,9 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/contexts/AuthContext';
 
 export const AdminRegistration = () => {
-  const [email, setEmail] = useState('admin@kempenhorst.nl');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('sk.janssen@gmail.com');
+  const [password, setPassword] = useState('*Adm1n*');
+  const [confirmPassword, setConfirmPassword] = useState('*Adm1n*');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);

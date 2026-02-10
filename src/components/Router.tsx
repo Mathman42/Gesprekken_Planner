@@ -2,18 +2,22 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/contexts/AuthContext';
 import { AdminLogin } from './auth/AdminLogin';
 import { AdminRegistration } from './auth/AdminRegistration';
+import { TeacherLogin } from './auth/TeacherLogin';
 import { ParentMagicLink } from './auth/ParentMagicLink';
 import { MagicLinkVerify } from './auth/MagicLinkVerify';
 import { AdminDashboard } from './admin/AdminDashboard';
+import { TeacherDashboard } from './teacher/TeacherDashboard';
 import { ParentBooking } from './parent/ParentBooking';
 
 export type Page =
   | 'home'
   | 'admin-login'
+  | 'teacher-login'
   | 'admin-registration'
   | 'parent-magic-link'
   | 'verify'
   | 'admin-dashboard'
+  | 'teacher-dashboard'
   | 'parent-booking';
 
 export const Router = () => {
@@ -43,6 +47,8 @@ export const Router = () => {
     if (isAuthenticated) {
       if (role === 'admin') {
         setCurrentPage('admin-dashboard');
+      } else if (role === 'teacher') {
+        setCurrentPage('teacher-dashboard');
       } else if (role === 'parent') {
         setCurrentPage('parent-booking');
       }
@@ -78,7 +84,7 @@ export const Router = () => {
             </h1>
             <p className="text-gray-600 mb-8">Kempenhorst College</p>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate('parent-magic-link')}
                 className="bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
@@ -88,11 +94,19 @@ export const Router = () => {
               </button>
 
               <button
-                onClick={() => navigate('admin-login')}
+                onClick={() => navigate('teacher-login')}
                 className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-4 px-6 rounded-lg transition-colors"
               >
                 <div className="text-lg mb-1">Docent</div>
-                <div className="text-sm opacity-90">Administratie</div>
+                <div className="text-sm opacity-90">Beschikbaarheid</div>
+              </button>
+
+              <button
+                onClick={() => navigate('admin-login')}
+                className="bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+              >
+                <div className="text-lg mb-1">Admin</div>
+                <div className="text-sm opacity-90">Beheer</div>
               </button>
             </div>
 
@@ -116,6 +130,10 @@ export const Router = () => {
     return <AdminLogin />;
   }
 
+  if (currentPage === 'teacher-login') {
+    return <TeacherLogin />;
+  }
+
   if (currentPage === 'admin-registration') {
     return <AdminRegistration />;
   }
@@ -130,6 +148,10 @@ export const Router = () => {
 
   if (currentPage === 'admin-dashboard' && isAuthenticated && role === 'admin') {
     return <AdminDashboard />;
+  }
+
+  if (currentPage === 'teacher-dashboard' && isAuthenticated && role === 'teacher') {
+    return <TeacherDashboard />;
   }
 
   if (currentPage === 'parent-booking' && isAuthenticated && role === 'parent') {

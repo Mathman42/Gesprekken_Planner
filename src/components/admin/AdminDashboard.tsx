@@ -7,6 +7,7 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../../lib/contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -14,8 +15,9 @@ import { Overview } from './pages/Overview';
 import { BaseSettings } from './pages/BaseSettings';
 import { ActivityLogPage } from './pages/ActivityLogPage';
 import { TeacherManagement } from './pages/TeacherManagement';
+import { RateLimitManagement } from './pages/RateLimitManagement';
 
-type AdminPage = 'overview' | 'teachers' | 'settings' | 'activity-log';
+type AdminPage = 'overview' | 'teachers' | 'settings' | 'activity-log' | 'rate-limits';
 
 export const AdminDashboard = () => {
   const [currentPage, setCurrentPage] = useState<AdminPage>('overview');
@@ -49,6 +51,7 @@ export const AdminDashboard = () => {
     { id: 'overview' as AdminPage, label: 'Overzicht', icon: LayoutDashboard },
     { id: 'teachers' as AdminPage, label: 'Docenten Beheren', icon: Users },
     { id: 'settings' as AdminPage, label: 'Basisinstellingen', icon: Settings },
+    { id: 'rate-limits' as AdminPage, label: 'Rate Limiting', icon: Shield },
     { id: 'activity-log' as AdminPage, label: 'Logboek', icon: FileText },
   ];
 
@@ -65,6 +68,8 @@ export const AdminDashboard = () => {
         return <TeacherManagement />;
       case 'settings':
         return <BaseSettings />;
+      case 'rate-limits':
+        return <RateLimitManagement />;
       case 'activity-log':
         return <ActivityLogPage />;
       default:

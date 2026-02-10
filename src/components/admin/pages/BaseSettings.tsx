@@ -22,6 +22,7 @@ export const BaseSettings = () => {
     bufferTime: 0,
     captchaEnabled: false,
     sendConfirmation: true,
+    magicLinkEnabled: true,
   });
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export const BaseSettings = () => {
         bufferTime: settingsMap.buffer_time ?? 0,
         captchaEnabled: settingsMap.captcha_enabled === true,
         sendConfirmation: settingsMap.send_booking_confirmation !== false,
+        magicLinkEnabled: settingsMap.magic_link_enabled !== false,
       });
     }
   };
@@ -73,6 +75,7 @@ export const BaseSettings = () => {
         { key: 'buffer_time', value: settings.bufferTime },
         { key: 'captcha_enabled', value: settings.captchaEnabled },
         { key: 'send_booking_confirmation', value: settings.sendConfirmation },
+        { key: 'magic_link_enabled', value: settings.magicLinkEnabled },
       ];
 
       for (const update of updates) {
@@ -272,6 +275,35 @@ export const BaseSettings = () => {
           </div>
         </div>
 
+        {/* Magic Link Toggle */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Magic Link Inloggen
+              </label>
+              <p className="text-sm text-gray-600 mt-1">
+                Sta ouders toe om in te loggen via een magic link (zonder wachtwoord)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setSettings({ ...settings, magicLinkEnabled: !settings.magicLinkEnabled })
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                settings.magicLinkEnabled ? 'bg-blue-900' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.magicLinkEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* Save Button */}
         <div className="border-t border-gray-200 pt-6">
           <button
@@ -373,6 +405,9 @@ export const BaseSettings = () => {
               <li>
                 <strong>Bevestigingsmail:</strong> Ouders ontvangen automatisch een bevestiging na het
                 inplannen
+              </li>
+              <li>
+                <strong>Magic Link:</strong> Ouders kunnen inloggen zonder wachtwoord via een veilige link in hun email
               </li>
             </ul>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Lock, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { checkRateLimit, logRateLimit, getClientIP } from '../../lib/utils/rateLimit';
@@ -19,6 +19,27 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkEnabled, setMagicLinkEnabled] = useState(true);
+
+  useEffect(() => {
+    loadMagicLinkSetting();
+  }, []);
+
+  const loadMagicLinkSetting = async () => {
+    try {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'magic_link_enabled')
+        .maybeSingle();
+
+      if (data && data.value !== undefined) {
+        setMagicLinkEnabled(data.value === true);
+      }
+    } catch (err) {
+      console.error('Error loading magic link setting:', err);
+    }
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +102,12 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (!magicLinkEnabled) {
+      setError('Magic link inloggen is momenteel uitgeschakeld. Gebruik wachtwoord login.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const ip = getClientIP();
@@ -204,13 +231,15 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
               Inloggen met wachtwoord
             </button>
 
-            <button
-              onClick={() => setLoginMethod('magic-link')}
-              className="w-full bg-white hover:bg-gray-50 text-blue-900 font-medium py-4 px-4 rounded-lg transition-colors flex items-center justify-center gap-3 border-2 border-blue-900"
-            >
-              <Mail size={20} />
-              Inloggen met e-mail link
-            </button>
+            {magicLinkEnabled && (
+              <button
+                onClick={() => setLoginMethod('magic-link')}
+                className="w-full bg-white hover:bg-gray-50 text-blue-900 font-medium py-4 px-4 rounded-lg transition-colors flex items-center justify-center gap-3 border-2 border-blue-900"
+              >
+                <Mail size={20} />
+                Inloggen met e-mail link
+              </button>
+            )}
           </div>
 
           {onBack && (

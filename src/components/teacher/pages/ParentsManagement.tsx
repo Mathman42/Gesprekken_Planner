@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Mail, Edit2, Trash2, Check, X, Send, Eye, EyeOff } from 'lucide-react';
+import { Plus, Mail, Edit2, Trash2, Check, X, Send, Eye, EyeOff, FileText, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/contexts/AuthContext';
 import bcrypt from 'bcryptjs';
@@ -34,6 +34,12 @@ export const ParentsManagement = () => {
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [emailTemplate, setEmailTemplate] = useState('');
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [previewParentId, setPreviewParentId] = useState<string>('');
+  const [teacherName, setTeacherName] = useState('');
+
   useEffect(() => {
     loadTeacherAndParents();
   }, [teacherEmail]);
@@ -42,13 +48,15 @@ export const ParentsManagement = () => {
     try {
       const { data: teacher } = await supabase
         .from('teachers')
-        .select('id')
+        .select('id, name')
         .eq('email', teacherEmail)
         .single();
 
       if (teacher) {
         setTeacherId(teacher.id);
+        setTeacherName(teacher.name);
         await loadParents(teacher.id);
+        await loadEmailTemplate(teacher.id);
       }
     } catch (err) {
       console.error('Error loading teacher:', err);
@@ -72,6 +80,103 @@ export const ParentsManagement = () => {
       console.error('Error loading parents:', err);
       setError('Kan ouders niet laden');
     }
+  };
+
+  const loadEmailTemplate = async (teacherId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('teacher_settings')
+        .select('invitation_email_template')
+        .eq('teacher_id', teacherId)
+        .single();
+
+      if (error) throw error;
+
+      const defaultTemplate = `Onderwerp: Uitnodiging voortgangsgesprek
+
+Beste [naam-ouder],
+
+U bent uitgenodigd om een voortgangsgesprek in te plannen.
+Klik op de link hieronder om een datum en tijd te kiezen.
+
+Inloggen kan met:
+
+Gebruikersnaam: [email-ouder]
+Wachtwoord: [wachtwoord]
+
+Link: [login-link]
+
+Met vriendelijke groet,
+[naam-docent]`;
+
+      setEmailTemplate(data?.invitation_email_template || defaultTemplate);
+    } catch (err) {
+      console.error('Error loading email template:', err);
+    }
+  };
+
+  const saveEmailTemplate = async () => {
+    if (!teacherId) return;
+
+    setTemplateLoading(true);
+    try {
+      const { error } = await supabase
+        .from('teacher_settings')
+        .update({ invitation_email_template: emailTemplate })
+        .eq('teacher_id', teacherId);
+
+      if (error) throw error;
+      setSuccess('Template succesvol opgeslagen');
+    } catch (err) {
+      console.error('Error saving template:', err);
+      setError('Kan template niet opslaan');
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const resetToDefaultTemplate = () => {
+    const defaultTemplate = `Onderwerp: Uitnodiging voortgangsgesprek
+
+Beste [naam-ouder],
+
+U bent uitgenodigd om een voortgangsgesprek in te plannen.
+Klik op de link hieronder om een datum en tijd te kiezen.
+
+Inloggen kan met:
+
+Gebruikersnaam: [email-ouder]
+Wachtwoord: [wachtwoord]
+
+Link: [login-link]
+
+Met vriendelijke groet,
+[naam-docent]`;
+
+    setEmailTemplate(defaultTemplate);
+  };
+
+  const getPreviewContent = () => {
+    if (!previewParentId) return emailTemplate;
+
+    const parent = parents.find(p => p.id === previewParentId);
+    if (!parent) return emailTemplate;
+
+    const loginUrl = `${window.location.origin}/parent-login`;
+
+    let preview = emailTemplate;
+    preview = preview.replace(/\[naam-ouder\]/g, parent.name);
+    preview = preview.replace(/\[email-ouder\]/g, parent.email);
+    preview = preview.replace(/\[naam-docent\]/g, teacherName);
+    preview = preview.replace(/\[login-link\]/g, loginUrl);
+
+    if (parent.password_hash) {
+      preview = preview.replace(/\[wachtwoord\]/g, '[persoonlijk wachtwoord]');
+    } else {
+      preview = preview.replace(/\[wachtwoord\]/g, '(gebruik magic link om in te loggen)');
+    }
+
+    return preview;
   };
 
   const generatePassword = () => {
@@ -213,26 +318,57 @@ export const ParentsManagement = () => {
       return;
     }
 
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
+
     const selectedParentsList = parents.filter(p => selectedParents.has(p.id));
     const loginUrl = `${window.location.origin}/parent-login`;
+    let successCount = 0;
+    let failCount = 0;
 
-    console.log('\n=== Uitnodigingen voor ouders ===');
-    selectedParentsList.forEach(parent => {
-      console.log(`\nNaam: ${parent.name}`);
-      console.log(`Email: ${parent.email}`);
-      if (parent.password_hash) {
-        console.log('Heeft wachtwoord: Ja');
-        console.log('Login methode: Wachtwoord of Magic Link');
-      } else {
-        console.log('Heeft wachtwoord: Nee');
-        console.log('Login methode: Alleen Magic Link');
+    for (const parent of selectedParentsList) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invitation`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session?.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              parentName: parent.name,
+              parentEmail: parent.email,
+              parentPassword: parent.password_hash ? '[persoonlijk wachtwoord]' : undefined,
+              teacherName: teacherName,
+              template: emailTemplate,
+              loginLink: loginUrl,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          successCount++;
+        } else {
+          failCount++;
+          console.error(`Failed to send to ${parent.email}:`, await response.text());
+        }
+      } catch (err) {
+        failCount++;
+        console.error(`Error sending to ${parent.email}:`, err);
       }
-      console.log(`Login URL: ${loginUrl}`);
-    });
-    console.log('\n================================\n');
+    }
 
-    setSuccess(`Uitnodigingen verstuurd naar ${selectedParents.size} ouder(s)`);
-    setSelectedParents(new Set());
+    setSubmitting(false);
+
+    if (successCount > 0) {
+      setSuccess(`${successCount} uitnodiging(en) succesvol verstuurd${failCount > 0 ? `, ${failCount} mislukt` : ''}`);
+      setSelectedParents(new Set());
+    } else {
+      setError('Alle uitnodigingen zijn mislukt. Controleer de console voor details.');
+    }
   };
 
   if (loading) {
@@ -383,29 +519,117 @@ export const ParentsManagement = () => {
       )}
 
       {parents.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={selectAll}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                {selectedParents.size === parents.length ? 'Deselecteer alles' : 'Selecteer alles'}
-              </button>
-              <span className="text-sm text-gray-600">
-                {selectedParents.size} geselecteerd
-              </span>
-            </div>
+        <>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
             <button
-              onClick={sendInvitations}
-              disabled={selectedParents.size === 0}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setShowTemplateEditor(!showTemplateEditor)}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
             >
-              <Send size={18} />
-              Uitnodigingen versturen
+              <div className="flex items-center gap-3">
+                <FileText className="text-blue-900" size={24} />
+                <div>
+                  <h3 className="font-bold text-gray-900">Email Template Aanpassen</h3>
+                  <p className="text-sm text-gray-600">Pas het uitnodigingsbericht aan</p>
+                </div>
+              </div>
+              {showTemplateEditor ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
+
+            {showTemplateEditor && (
+              <div className="border-t border-gray-200 p-6 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Email Template
+                    </label>
+                    <button
+                      onClick={resetToDefaultTemplate}
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      <RotateCcw size={16} />
+                      Standaard herstellen
+                    </button>
+                  </div>
+                  <textarea
+                    value={emailTemplate}
+                    onChange={(e) => setEmailTemplate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    rows={12}
+                    placeholder="Vul hier uw email template in..."
+                  />
+                  <div className="mt-2 text-sm text-gray-600">
+                    <p className="font-medium mb-1">Beschikbare placeholders:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[naam-ouder]</code> - Naam van de ouder</div>
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[email-ouder]</code> - Email adres</div>
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[wachtwoord]</code> - Wachtwoord (indien van toepassing)</div>
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[login-link]</code> - Link naar login pagina</div>
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[naam-docent]</code> - Uw naam</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Preview
+                    </label>
+                    {parents.length > 0 && (
+                      <select
+                        value={previewParentId}
+                        onChange={(e) => setPreviewParentId(e.target.value)}
+                        className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecteer ouder voor preview</option>
+                        {parents.map(parent => (
+                          <option key={parent.id} value={parent.id}>
+                            {parent.name} ({parent.email})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 whitespace-pre-wrap font-mono text-sm text-gray-800 max-h-64 overflow-y-auto">
+                    {getPreviewContent()}
+                  </div>
+                </div>
+
+                <button
+                  onClick={saveEmailTemplate}
+                  disabled={templateLoading}
+                  className="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  <Check size={18} />
+                  {templateLoading ? 'Bezig met opslaan...' : 'Template Opslaan'}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={selectAll}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {selectedParents.size === parents.length ? 'Deselecteer alles' : 'Selecteer alles'}
+                </button>
+                <span className="text-sm text-gray-600">
+                  {selectedParents.size} geselecteerd
+                </span>
+              </div>
+              <button
+                onClick={sendInvitations}
+                disabled={selectedParents.size === 0 || submitting}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send size={18} />
+                {submitting ? 'Bezig met versturen...' : 'Uitnodigingen versturen'}
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">

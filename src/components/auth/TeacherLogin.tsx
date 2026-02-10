@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { LogIn } from 'lucide-react';
-import { verifyTeacherPassword } from '../../lib/utils/auth';
+import { supabase } from '../../lib/supabase';
 import { logActivity } from '../../lib/utils/activityLog';
 import { getClientIP } from '../../lib/utils/rateLimit';
 import { useAuth } from '../../lib/contexts/AuthContext';
 
-export const TeacherLogin = () => {
+interface TeacherLoginProps {
+  onPasswordChangeRequired?: (email: string) => void;
+}
+
+export const TeacherLogin = ({ onPasswordChangeRequired }: TeacherLoginProps = {}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,16 +22,39 @@ export const TeacherLogin = () => {
     setLoading(true);
 
     try {
-      const isValid = await verifyTeacherPassword(email, password);
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (isValid) {
-        const ip = getClientIP();
-        await logActivity('teacher_login', email, ip);
-        login(email, 'teacher');
-      } else {
+      if (authError || !authData.user) {
         setError('Ongeldige inloggegevens');
         const ip = getClientIP();
         await logActivity('teacher_login_failed', email, ip, { success: false });
+        setLoading(false);
+        return;
+      }
+
+      const { data: teacherData, error: teacherError } = await supabase
+        .from('teachers')
+        .select('id, email, password_must_change')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (teacherError || !teacherData) {
+        setError('Docent account niet gevonden');
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      const ip = getClientIP();
+      await logActivity('teacher_login', email, ip);
+
+      if (teacherData.password_must_change && onPasswordChangeRequired) {
+        onPasswordChangeRequired(email);
+      } else {
+        login(email, 'teacher');
       }
     } catch (err) {
       setError('Er is een fout opgetreden. Probeer het opnieuw.');

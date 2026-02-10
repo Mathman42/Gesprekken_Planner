@@ -52,44 +52,77 @@ export const PasswordChange = ({ email, userType, isRequired = false, onSuccess 
         return;
       }
 
-      if (!isRequired) {
-        const table = userType === 'parent' ? 'parents' : 'teachers';
-        const { data: userData } = await supabase
-          .from(table)
-          .select('password_hash')
-          .eq('email', email)
-          .single();
+      if (userType === 'teacher') {
+        if (!isRequired) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password: currentPassword,
+          });
 
-        if (userData && userData.password_hash) {
-          const bcrypt = await import('bcryptjs');
-          const isValid = await bcrypt.compare(currentPassword, userData.password_hash);
-
-          if (!isValid) {
+          if (signInError) {
             setError('Huidig wachtwoord is onjuist');
             setLoading(false);
             return;
           }
         }
+
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) throw updateError;
+
+        const { error: teacherUpdateError } = await supabase
+          .from('teachers')
+          .update({ password_must_change: false })
+          .eq('email', email);
+
+        if (teacherUpdateError) {
+          console.error('Error updating teacher password_must_change flag:', teacherUpdateError);
+        }
+
+        setSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+        }, 2000);
+      } else {
+        if (!isRequired) {
+          const { data: userData } = await supabase
+            .from('parents')
+            .select('password_hash')
+            .eq('email', email)
+            .maybeSingle();
+
+          if (userData && userData.password_hash) {
+            const bcrypt = await import('bcryptjs');
+            const isValid = await bcrypt.compare(currentPassword, userData.password_hash);
+
+            if (!isValid) {
+              setError('Huidig wachtwoord is onjuist');
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        const bcrypt = await import('bcryptjs');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        const { error: updateError } = await supabase
+          .from('parents')
+          .update({
+            password_hash: hashedPassword,
+            password_must_change: false,
+          })
+          .eq('email', email);
+
+        if (updateError) throw updateError;
+
+        setSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+        }, 2000);
       }
-
-      const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      const table = userType === 'parent' ? 'parents' : 'teachers';
-      const { error: updateError } = await supabase
-        .from(table)
-        .update({
-          password_hash: hashedPassword,
-          password_must_change: false,
-        })
-        .eq('email', email);
-
-      if (updateError) throw updateError;
-
-      setSuccess(true);
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
     } catch (err) {
       setError('Er is een fout opgetreden. Probeer het opnieuw.');
       console.error('Password change error:', err);

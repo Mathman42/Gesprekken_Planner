@@ -7,13 +7,14 @@ import {
   Clock,
   Users,
   BookOpen,
-  Lock,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../lib/contexts/AuthContext';
 import { AvailabilityManager } from './pages/AvailabilityManager';
 import { ParentsManagement } from './pages/ParentsManagement';
+import { TeacherSettings } from './pages/TeacherSettings';
 
-type TeacherPage = 'availability' | 'parents' | 'events' | 'bookings' | 'password';
+type TeacherPage = 'availability' | 'parents' | 'events' | 'bookings' | 'settings';
 
 export const TeacherDashboard = () => {
   const [currentPage, setCurrentPage] = useState<TeacherPage>('parents');
@@ -25,7 +26,7 @@ export const TeacherDashboard = () => {
     { id: 'events' as TeacherPage, label: 'Agenda\'s Beheren', icon: Calendar },
     { id: 'bookings' as TeacherPage, label: 'Mijn Gesprekken', icon: BookOpen },
     { id: 'availability' as TeacherPage, label: 'Beschikbaarheid', icon: Clock },
-    { id: 'password' as TeacherPage, label: 'Wachtwoord', icon: Lock },
+    { id: 'settings' as TeacherPage, label: 'Basisinstellingen', icon: Settings },
   ];
 
   const handleLogout = () => {
@@ -43,8 +44,8 @@ export const TeacherDashboard = () => {
         return <div className="p-8 text-center text-gray-600">Mijn gesprekken komt binnenkort</div>;
       case 'availability':
         return <AvailabilityManager />;
-      case 'password':
-        return <div className="p-8 text-center text-gray-600">Wachtwoord wijzigen komt binnenkort</div>;
+      case 'settings':
+        return <TeacherSettings />;
       default:
         return <ParentsManagement />;
     }

@@ -142,7 +142,14 @@ export const Router = () => {
   }
 
   if (currentPage === 'teacher-login') {
-    return <TeacherLogin />;
+    return (
+      <TeacherLogin
+        onPasswordChangeRequired={(email) => {
+          setPasswordChangeData({ email, userType: 'teacher' });
+          setCurrentPage('password-change');
+        }}
+      />
+    );
   }
 
   if (currentPage === 'admin-registration') {

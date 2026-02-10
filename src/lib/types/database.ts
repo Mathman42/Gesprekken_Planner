@@ -232,6 +232,165 @@ export interface Database {
           updated_at?: string;
         };
       };
+      teachers: {
+        Row: {
+          id: string;
+          email: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          name?: string;
+          created_at?: string;
+        };
+      };
+      teacher_availability: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          date: string;
+          start_time: string;
+          end_time: string;
+          is_available: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          date: string;
+          start_time: string;
+          end_time: string;
+          is_available?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          date?: string;
+          start_time?: string;
+          end_time?: string;
+          is_available?: boolean;
+          created_at?: string;
+        };
+      };
+      teacher_time_slots: {
+        Row: {
+          id: string;
+          teacher_availability_id: string;
+          teacher_id: string;
+          date: string;
+          start_time: string;
+          end_time: string;
+          is_blocked: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_availability_id: string;
+          teacher_id: string;
+          date: string;
+          start_time: string;
+          end_time: string;
+          is_blocked?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_availability_id?: string;
+          teacher_id?: string;
+          date?: string;
+          start_time?: string;
+          end_time?: string;
+          is_blocked?: boolean;
+          created_at?: string;
+        };
+      };
+      teacher_bookings: {
+        Row: {
+          id: string;
+          teacher_time_slot_id: string;
+          teacher_id: string;
+          parent_id: string | null;
+          parent_email: string;
+          student_name: string;
+          booking_ip: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_time_slot_id: string;
+          teacher_id: string;
+          parent_id?: string | null;
+          parent_email: string;
+          student_name: string;
+          booking_ip?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_time_slot_id?: string;
+          teacher_id?: string;
+          parent_id?: string | null;
+          parent_email?: string;
+          student_name?: string;
+          booking_ip?: string | null;
+          created_at?: string;
+        };
+      };
+      teacher_settings: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          slot_duration: number;
+          buffer_time: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          slot_duration?: number;
+          buffer_time?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          slot_duration?: number;
+          buffer_time?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      parents: {
+        Row: {
+          id: string;
+          email: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          name?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }

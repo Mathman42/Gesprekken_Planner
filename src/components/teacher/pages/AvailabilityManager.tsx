@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Plus, Trash2, CheckCircle, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../lib/contexts/AuthContext';
-import type { TeacherAvailability, Teacher } from '../../../lib/types';
+import type { TeacherAvailability, Teacher, TeacherSettings } from '../../../lib/types';
+import { generateSlotsForAvailabilityPeriod, deleteSlotsForAvailability } from '../../../lib/services/teacherSlotService';
+import TimeSlotManager from '../TimeSlotManager';
 
 export const AvailabilityManager = () => {
   const [availabilities, setAvailabilities] = useState<TeacherAvailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [teacherSettings, setTeacherSettings] = useState<TeacherSettings | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     date: '',
     start_time: '',
@@ -39,6 +43,16 @@ export const AvailabilityManager = () => {
       }
 
       setTeacherId(teacher.id);
+
+      const { data: settings, error: settingsError } = await supabase
+        .from('teacher_settings')
+        .select('*')
+        .eq('teacher_id', teacher.id)
+        .maybeSingle();
+
+      if (settingsError) throw settingsError;
+      setTeacherSettings(settings);
+
       await loadAvailabilities(teacher.id);
     } catch (err) {
       console.error('Error loading teacher data:', err);
@@ -75,13 +89,18 @@ export const AvailabilityManager = () => {
       return;
     }
 
+    if (!teacherSettings) {
+      setError('Docent instellingen niet gevonden. Ga naar Instellingen om deze aan te maken.');
+      return;
+    }
+
     if (formData.start_time >= formData.end_time) {
       setError('Eindtijd moet na starttijd zijn');
       return;
     }
 
     try {
-      const { error: insertError } = await supabase
+      const { data: newAvailability, error: insertError } = await supabase
         .from('teacher_availability')
         .insert({
           teacher_id: teacherId,
@@ -89,11 +108,23 @@ export const AvailabilityManager = () => {
           start_time: formData.start_time,
           end_time: formData.end_time,
           is_available: true,
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      setSuccess('Beschikbaarheid succesvol toegevoegd');
+      const slotsResult = await generateSlotsForAvailabilityPeriod(
+        newAvailability,
+        teacherSettings.slot_duration,
+        teacherSettings.buffer_time
+      );
+
+      if (!slotsResult.success) {
+        throw new Error(slotsResult.error || 'Fout bij het genereren van tijdsloten');
+      }
+
+      setSuccess('Beschikbaarheid en tijdsloten succesvol toegevoegd');
       setFormData({ date: '', start_time: '', end_time: '' });
       setShowAddForm(false);
       await loadAvailabilities(teacherId);
@@ -104,11 +135,13 @@ export const AvailabilityManager = () => {
   };
 
   const handleDeleteAvailability = async (id: string) => {
-    if (!confirm('Weet je zeker dat je deze beschikbaarheid wilt verwijderen?')) {
+    if (!confirm('Weet je zeker dat je deze beschikbaarheid wilt verwijderen? Alle bijbehorende tijdsloten worden ook verwijderd.')) {
       return;
     }
 
     try {
+      await deleteSlotsForAvailability(id);
+
       const { error: deleteError } = await supabase
         .from('teacher_availability')
         .delete()
@@ -116,7 +149,7 @@ export const AvailabilityManager = () => {
 
       if (deleteError) throw deleteError;
 
-      setSuccess('Beschikbaarheid succesvol verwijderd');
+      setSuccess('Beschikbaarheid en tijdsloten succesvol verwijderd');
       if (teacherId) {
         await loadAvailabilities(teacherId);
       }
@@ -148,6 +181,16 @@ export const AvailabilityManager = () => {
           <p className="mt-4 text-gray-600">Laden...</p>
         </div>
       </div>
+    );
+  }
+
+  if (selectedDate && teacherId) {
+    return (
+      <TimeSlotManager
+        teacherId={teacherId}
+        date={selectedDate}
+        onBack={() => setSelectedDate(null)}
+      />
     );
   }
 
@@ -259,13 +302,16 @@ export const AvailabilityManager = () => {
             {availabilities.map((availability) => (
               <div
                 key={availability.id}
-                className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group"
               >
-                <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-4 flex-1 cursor-pointer"
+                  onClick={() => setSelectedDate(availability.date)}
+                >
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Calendar size={24} className="text-blue-900" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">{formatDate(availability.date)}</h4>
                     <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                       <Clock size={16} />
@@ -274,10 +320,14 @@ export const AvailabilityManager = () => {
                       </span>
                     </div>
                   </div>
+                  <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-900 transition-colors" />
                 </div>
                 <button
-                  onClick={() => handleDeleteAvailability(availability.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteAvailability(availability.id);
+                  }}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2"
                   title="Verwijderen"
                 >
                   <Trash2 size={20} />

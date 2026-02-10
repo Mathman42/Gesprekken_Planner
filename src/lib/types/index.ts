@@ -27,9 +27,31 @@ export type TeacherAvailability = Database['public']['Tables']['teacher_availabi
 export type TeacherAvailabilityInsert = Database['public']['Tables']['teacher_availability']['Insert'];
 export type TeacherAvailabilityUpdate = Database['public']['Tables']['teacher_availability']['Update'];
 
+export type TeacherTimeSlot = Database['public']['Tables']['teacher_time_slots']['Row'];
+export type TeacherTimeSlotInsert = Database['public']['Tables']['teacher_time_slots']['Insert'];
+export type TeacherTimeSlotUpdate = Database['public']['Tables']['teacher_time_slots']['Update'];
+
+export type TeacherBooking = Database['public']['Tables']['teacher_bookings']['Row'];
+export type TeacherBookingInsert = Database['public']['Tables']['teacher_bookings']['Insert'];
+export type TeacherBookingUpdate = Database['public']['Tables']['teacher_bookings']['Update'];
+
+export type TeacherSettings = Database['public']['Tables']['teacher_settings']['Row'];
+export type TeacherSettingsInsert = Database['public']['Tables']['teacher_settings']['Insert'];
+export type TeacherSettingsUpdate = Database['public']['Tables']['teacher_settings']['Update'];
+
+export type Parent = Database['public']['Tables']['parents']['Row'];
+export type ParentInsert = Database['public']['Tables']['parents']['Insert'];
+export type ParentUpdate = Database['public']['Tables']['parents']['Update'];
+
 export interface TimeSlotWithBooking extends TimeSlot {
   booking?: Booking | null;
 }
+
+export interface TeacherTimeSlotWithBooking extends TeacherTimeSlot {
+  booking?: TeacherBooking | null;
+}
+
+export type SlotStatus = 'available' | 'blocked' | 'booked' | 'selected';
 
 export interface EventWithStats extends Event {
   total_slots: number;

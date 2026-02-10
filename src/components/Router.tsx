@@ -25,7 +25,7 @@ export type Page =
   | 'init-admin';
 
 export const Router = () => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, login } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [verifyToken, setVerifyToken] = useState<string>('');
   const [passwordChangeData, setPasswordChangeData] = useState<{ email: string; userType: 'parent' | 'teacher' } | null>(null);
@@ -187,8 +187,17 @@ export const Router = () => {
         userType={passwordChangeData.userType}
         isRequired={true}
         onSuccess={() => {
+          const { email, userType } = passwordChangeData;
           setPasswordChangeData(null);
-          window.location.reload();
+
+          if (userType === 'parent') {
+            login(email, 'parent');
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          } else {
+            window.location.reload();
+          }
         }}
       />
     );

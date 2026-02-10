@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LogIn } from 'lucide-react';
-import { verifyAdminPassword } from '../../lib/utils/auth';
+import { supabase } from '../../lib/supabase';
 import { logActivity } from '../../lib/utils/activityLog';
 import { getClientIP } from '../../lib/utils/rateLimit';
 import { useAuth } from '../../lib/contexts/AuthContext';
@@ -18,21 +18,31 @@ export const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const isValid = await verifyAdminPassword(email, password);
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (isValid) {
+      if (signInError) {
+        setError('Ongeldige inloggegevens');
+        const ip = getClientIP();
+        await logActivity('admin_login', email, ip, { success: false });
+        setLoading(false);
+        return;
+      }
+
+      if (data.user && data.user.email === 'admin@kempenhorst.nl') {
         const ip = getClientIP();
         await logActivity('admin_login', email, ip);
         login(email, 'admin');
       } else {
-        setError('Ongeldige inloggegevens');
-        const ip = getClientIP();
-        await logActivity('admin_login', email, ip, { success: false });
+        await supabase.auth.signOut();
+        setError('Geen admin toegang');
+        setLoading(false);
       }
     } catch (err) {
       setError('Er is een fout opgetreden. Probeer het opnieuw.');
       console.error('Login error:', err);
-    } finally {
       setLoading(false);
     }
   };

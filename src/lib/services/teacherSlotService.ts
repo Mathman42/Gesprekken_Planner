@@ -87,6 +87,25 @@ export async function toggleSlotBlock(
   }
 }
 
+export async function checkStudentBooking(
+  studentName: string
+): Promise<{ success: boolean; error?: string; booking?: TeacherBooking }> {
+  try {
+    const { data, error } = await supabase
+      .from('teacher_bookings')
+      .select('*')
+      .ilike('student_name', studentName.trim())
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return { success: true, booking: data || undefined };
+  } catch (error) {
+    console.error('Error checking student booking:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
 export async function createTeacherBooking(
   booking: Omit<TeacherBookingInsert, 'id' | 'created_at'>
 ): Promise<{ success: boolean; error?: string; booking?: TeacherBooking }> {
@@ -101,6 +120,11 @@ export async function createTeacherBooking(
     if (!slot) throw new Error('Time slot not found');
     if (slot.is_blocked) throw new Error('This time slot is blocked');
     if ((slot as any).booking) throw new Error('This time slot is already booked');
+
+    const existingBooking = await checkStudentBooking(booking.student_name);
+    if (existingBooking.success && existingBooking.booking) {
+      throw new Error(`Er bestaat al een afspraak voor ${booking.student_name.trim()}`);
+    }
 
     const { data, error } = await supabase
       .from('teacher_bookings')

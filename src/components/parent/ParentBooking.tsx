@@ -112,7 +112,11 @@ export const ParentBooking = () => {
       });
 
       if (!result.success) {
-        setError(result.error || 'Er is een fout opgetreden');
+        if (result.error?.includes('Er bestaat al een afspraak voor')) {
+          setError(`${result.error}. Elk kind kan maar één afspraak maken. Neem contact op met de school bij vragen.`);
+        } else {
+          setError(result.error || 'Er is een fout opgetreden');
+        }
         return;
       }
 

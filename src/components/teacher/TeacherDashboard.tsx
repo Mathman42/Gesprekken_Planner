@@ -13,6 +13,7 @@ import { useAuth } from '../../lib/contexts/AuthContext';
 import { AvailabilityManager } from './pages/AvailabilityManager';
 import { ParentsManagement } from './pages/ParentsManagement';
 import { TeacherSettings } from './pages/TeacherSettings';
+import { MyBookings } from './pages/MyBookings';
 
 type TeacherPage = 'availability' | 'parents' | 'events' | 'bookings' | 'settings';
 
@@ -41,7 +42,7 @@ export const TeacherDashboard = () => {
       case 'events':
         return <div className="p-8 text-center text-gray-600">Agenda's beheren komt binnenkort</div>;
       case 'bookings':
-        return <div className="p-8 text-center text-gray-600">Mijn gesprekken komt binnenkort</div>;
+        return <MyBookings />;
       case 'availability':
         return <AvailabilityManager />;
       case 'settings':

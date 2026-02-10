@@ -204,3 +204,29 @@ export async function deleteSlotsForAvailability(
     return { success: false, error: (error as Error).message };
   }
 }
+
+export async function getTeacherBookings(
+  teacherId: string
+): Promise<{ success: boolean; error?: string; bookings?: any[] }> {
+  try {
+    const { data, error } = await supabase
+      .from('teacher_bookings')
+      .select(`
+        *,
+        time_slot:teacher_time_slots(
+          date,
+          start_time,
+          end_time
+        )
+      `)
+      .eq('teacher_id', teacherId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return { success: true, bookings: data || [] };
+  } catch (error) {
+    console.error('Error fetching teacher bookings:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}

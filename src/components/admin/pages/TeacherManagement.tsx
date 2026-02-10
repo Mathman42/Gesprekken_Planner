@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Mail, Edit2, Trash2, Check, X, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import bcrypt from 'bcryptjs';
 
 interface Teacher {
   id: string;
@@ -72,34 +71,56 @@ export const TeacherManagement = () => {
         return;
       }
 
-      const hashedPassword = await bcrypt.hash(formData.password, 10);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Niet geautoriseerd');
+        setSubmitting(false);
+        return;
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-teacher`;
+      const headers = {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      };
 
       if (editingTeacher) {
-        const { error: updateError } = await supabase
-          .from('teachers')
-          .update({
+        const response = await fetch(apiUrl, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            id: editingTeacher.id,
             email: formData.email,
             name: formData.name,
-            password_hash: hashedPassword,
+            password: formData.password || undefined,
             password_must_change: formData.passwordMustChange,
-          })
-          .eq('id', editingTeacher.id);
+          }),
+        });
 
-        if (updateError) throw updateError;
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Fout bij bijwerken docent');
+        }
+
         setSuccess('Docent succesvol bijgewerkt');
       } else {
-        const { error: insertError } = await supabase
-          .from('teachers')
-          .insert({
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
             email: formData.email,
             name: formData.name,
-            password_hash: hashedPassword,
+            password: formData.password,
             password_must_change: formData.passwordMustChange,
-          });
+          }),
+        });
 
-        if (insertError) throw insertError;
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Fout bij toevoegen docent');
+        }
+
         setSuccess('Docent succesvol toegevoegd');
-
         await sendTeacherInvitation(formData.email, formData.name, formData.password);
       }
 
@@ -150,12 +171,29 @@ Login URL: ${loginUrl}
     }
 
     try {
-      const { error } = await supabase
-        .from('teachers')
-        .delete()
-        .eq('id', teacherId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Niet geautoriseerd');
+        return;
+      }
 
-      if (error) throw error;
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-teacher`;
+      const headers = {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'DELETE',
+        headers,
+        body: JSON.stringify({ id: teacherId }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Fout bij verwijderen docent');
+      }
+
       setSuccess('Docent succesvol verwijderd');
       loadTeachers();
     } catch (err: any) {

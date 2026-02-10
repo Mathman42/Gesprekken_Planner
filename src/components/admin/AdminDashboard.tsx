@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
-  Calendar,
+  Users,
   Settings,
-  BookOpen,
   FileText,
   LogOut,
   Menu,
@@ -12,12 +11,11 @@ import {
 import { useAuth } from '../../lib/contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Overview } from './pages/Overview';
-import { AddEvent } from './pages/AddEvent';
 import { BaseSettings } from './pages/BaseSettings';
-import { BookingControl } from './pages/BookingControl';
 import { ActivityLogPage } from './pages/ActivityLogPage';
+import { TeacherManagement } from './pages/TeacherManagement';
 
-type AdminPage = 'overview' | 'add-event' | 'settings' | 'booking-control' | 'activity-log';
+type AdminPage = 'overview' | 'teachers' | 'settings' | 'activity-log';
 
 export const AdminDashboard = () => {
   const [currentPage, setCurrentPage] = useState<AdminPage>('overview');
@@ -49,9 +47,8 @@ export const AdminDashboard = () => {
 
   const navigation = [
     { id: 'overview' as AdminPage, label: 'Overzicht', icon: LayoutDashboard },
-    { id: 'add-event' as AdminPage, label: 'Dag toevoegen', icon: Calendar },
+    { id: 'teachers' as AdminPage, label: 'Docenten Beheren', icon: Users },
     { id: 'settings' as AdminPage, label: 'Basisinstellingen', icon: Settings },
-    { id: 'booking-control' as AdminPage, label: 'Boekingen beheren', icon: BookOpen },
     { id: 'activity-log' as AdminPage, label: 'Logboek', icon: FileText },
   ];
 
@@ -64,12 +61,10 @@ export const AdminDashboard = () => {
     switch (currentPage) {
       case 'overview':
         return <Overview />;
-      case 'add-event':
-        return <AddEvent />;
+      case 'teachers':
+        return <TeacherManagement />;
       case 'settings':
         return <BaseSettings />;
-      case 'booking-control':
-        return <BookingControl />;
       case 'activity-log':
         return <ActivityLogPage />;
       default:

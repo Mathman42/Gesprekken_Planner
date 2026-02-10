@@ -3,8 +3,9 @@ import { useAuth } from '../lib/contexts/AuthContext';
 import { AdminLogin } from './auth/AdminLogin';
 import { AdminRegistration } from './auth/AdminRegistration';
 import { TeacherLogin } from './auth/TeacherLogin';
-import { ParentMagicLink } from './auth/ParentMagicLink';
+import { ParentLogin } from './auth/ParentLogin';
 import { MagicLinkVerify } from './auth/MagicLinkVerify';
+import { PasswordChange } from './auth/PasswordChange';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { TeacherDashboard } from './teacher/TeacherDashboard';
 import { ParentBooking } from './parent/ParentBooking';
@@ -14,8 +15,9 @@ export type Page =
   | 'admin-login'
   | 'teacher-login'
   | 'admin-registration'
-  | 'parent-magic-link'
+  | 'parent-login'
   | 'verify'
+  | 'password-change'
   | 'admin-dashboard'
   | 'teacher-dashboard'
   | 'parent-booking';
@@ -24,6 +26,7 @@ export const Router = () => {
   const { isAuthenticated, role } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [verifyToken, setVerifyToken] = useState<string>('');
+  const [passwordChangeData, setPasswordChangeData] = useState<{ email: string; userType: 'parent' | 'teacher' } | null>(null);
 
   useEffect(() => {
     // Check URL for setup route
@@ -86,7 +89,7 @@ export const Router = () => {
 
             <div className="grid md:grid-cols-3 gap-4">
               <button
-                onClick={() => navigate('parent-magic-link')}
+                onClick={() => navigate('parent-login')}
                 className="bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
               >
                 <div className="text-lg mb-1">Ouder/Verzorger</div>
@@ -138,12 +141,38 @@ export const Router = () => {
     return <AdminRegistration />;
   }
 
-  if (currentPage === 'parent-magic-link') {
-    return <ParentMagicLink onBack={() => navigate('home')} />;
+  if (currentPage === 'parent-login') {
+    return (
+      <ParentLogin
+        onBack={() => navigate('home')}
+        onLoginSuccess={(email, requirePasswordChange) => {
+          if (requirePasswordChange) {
+            setPasswordChangeData({ email, userType: 'parent' });
+            setCurrentPage('password-change');
+          } else {
+            window.location.reload();
+          }
+        }}
+      />
+    );
   }
 
   if (currentPage === 'verify') {
     return <MagicLinkVerify token={verifyToken} />;
+  }
+
+  if (currentPage === 'password-change' && passwordChangeData) {
+    return (
+      <PasswordChange
+        email={passwordChangeData.email}
+        userType={passwordChangeData.userType}
+        isRequired={true}
+        onSuccess={() => {
+          setPasswordChangeData(null);
+          window.location.reload();
+        }}
+      />
+    );
   }
 
   if (currentPage === 'admin-dashboard' && isAuthenticated && role === 'admin') {

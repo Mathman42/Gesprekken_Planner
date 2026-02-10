@@ -5,19 +5,27 @@ import {
   Menu,
   X,
   Clock,
+  Users,
+  BookOpen,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../lib/contexts/AuthContext';
 import { AvailabilityManager } from './pages/AvailabilityManager';
+import { ParentsManagement } from './pages/ParentsManagement';
 
-type TeacherPage = 'availability';
+type TeacherPage = 'availability' | 'parents' | 'events' | 'bookings' | 'password';
 
 export const TeacherDashboard = () => {
-  const [currentPage, setCurrentPage] = useState<TeacherPage>('availability');
+  const [currentPage, setCurrentPage] = useState<TeacherPage>('parents');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout, email } = useAuth();
 
   const navigation = [
+    { id: 'parents' as TeacherPage, label: 'Ouders Beheren', icon: Users },
+    { id: 'events' as TeacherPage, label: 'Agenda\'s Beheren', icon: Calendar },
+    { id: 'bookings' as TeacherPage, label: 'Mijn Gesprekken', icon: BookOpen },
     { id: 'availability' as TeacherPage, label: 'Beschikbaarheid', icon: Clock },
+    { id: 'password' as TeacherPage, label: 'Wachtwoord', icon: Lock },
   ];
 
   const handleLogout = () => {
@@ -27,10 +35,18 @@ export const TeacherDashboard = () => {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'parents':
+        return <ParentsManagement />;
+      case 'events':
+        return <div className="p-8 text-center text-gray-600">Agenda's beheren komt binnenkort</div>;
+      case 'bookings':
+        return <div className="p-8 text-center text-gray-600">Mijn gesprekken komt binnenkort</div>;
       case 'availability':
         return <AvailabilityManager />;
+      case 'password':
+        return <div className="p-8 text-center text-gray-600">Wachtwoord wijzigen komt binnenkort</div>;
       default:
-        return <AvailabilityManager />;
+        return <ParentsManagement />;
     }
   };
 

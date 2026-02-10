@@ -9,6 +9,7 @@ import { PasswordChange } from './auth/PasswordChange';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { TeacherDashboard } from './teacher/TeacherDashboard';
 import { ParentBooking } from './parent/ParentBooking';
+import { InitAdmin } from './setup/InitAdmin';
 
 export type Page =
   | 'home'
@@ -20,7 +21,8 @@ export type Page =
   | 'password-change'
   | 'admin-dashboard'
   | 'teacher-dashboard'
-  | 'parent-booking';
+  | 'parent-booking'
+  | 'init-admin';
 
 export const Router = () => {
   const { isAuthenticated, role } = useAuth();
@@ -33,6 +35,12 @@ export const Router = () => {
     const path = window.location.pathname;
     if (path === '/setup' || path === '/admin/setup') {
       setCurrentPage('admin-registration');
+      return;
+    }
+
+    // Check URL for init-admin route
+    if (path === '/init-admin') {
+      setCurrentPage('init-admin');
       return;
     }
 
@@ -139,6 +147,10 @@ export const Router = () => {
 
   if (currentPage === 'admin-registration') {
     return <AdminRegistration />;
+  }
+
+  if (currentPage === 'init-admin') {
+    return <InitAdmin />;
   }
 
   if (currentPage === 'parent-login') {

@@ -29,8 +29,8 @@ export const MagicLinkVerify = ({ token }: MagicLinkVerifyProps) => {
           setMessage('U bent succesvol ingelogd!');
 
           setTimeout(() => {
-            window.history.replaceState({}, '', '/');
-          }, 1000);
+            window.location.href = '/';
+          }, 1500);
         } else {
           setStatus('error');
           setMessage('Deze link is ongeldig of verlopen.');

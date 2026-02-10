@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/contexts/AuthContext';
 import { AdminLogin } from './auth/AdminLogin';
+import { AdminRegistration } from './auth/AdminRegistration';
 import { ParentMagicLink } from './auth/ParentMagicLink';
 import { MagicLinkVerify } from './auth/MagicLinkVerify';
 import { AdminDashboard } from './admin/AdminDashboard';
@@ -9,6 +10,7 @@ import { ParentBooking } from './parent/ParentBooking';
 export type Page =
   | 'home'
   | 'admin-login'
+  | 'admin-registration'
   | 'parent-magic-link'
   | 'verify'
   | 'admin-dashboard'
@@ -20,6 +22,13 @@ export const Router = () => {
   const [verifyToken, setVerifyToken] = useState<string>('');
 
   useEffect(() => {
+    // Check URL for setup route
+    const path = window.location.pathname;
+    if (path === '/setup' || path === '/admin/setup') {
+      setCurrentPage('admin-registration');
+      return;
+    }
+
     // Check URL for token parameter
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
@@ -105,6 +114,10 @@ export const Router = () => {
 
   if (currentPage === 'admin-login') {
     return <AdminLogin />;
+  }
+
+  if (currentPage === 'admin-registration') {
+    return <AdminRegistration />;
   }
 
   if (currentPage === 'parent-magic-link') {

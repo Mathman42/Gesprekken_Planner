@@ -117,6 +117,7 @@ export const TeacherManagement = () => {
 
         const result = await response.json();
         if (!response.ok) {
+          console.error('Edge Function error:', result);
           throw new Error(result.error || 'Fout bij toevoegen docent');
         }
 

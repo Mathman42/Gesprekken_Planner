@@ -23,7 +23,7 @@ export default function SlotCard({
       case 'available':
         return 'bg-white border-gray-300';
       case 'blocked':
-        return 'bg-gray-200 border-gray-400';
+        return 'bg-gray-100 border-gray-500';
       case 'booked':
         return viewMode === 'teacher' ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400';
       case 'selected':
@@ -37,9 +37,6 @@ export default function SlotCard({
     if (status === 'booked') {
       return <User className="w-4 h-4 text-green-600" />;
     }
-    if (status === 'blocked') {
-      return <X className="w-4 h-4 text-gray-600" />;
-    }
     return null;
   };
 
@@ -51,10 +48,10 @@ export default function SlotCard({
         return (
           <button
             onClick={onAction}
-            className="ml-auto p-1 rounded hover:bg-red-100 transition-colors"
-            title="Blokkeren"
+            className="ml-auto p-1 rounded hover:bg-green-50 transition-colors"
+            title="Klik om te blokkeren"
           >
-            <X className="w-5 h-5 text-red-600" />
+            <Check className="w-5 h-5 text-green-600" />
           </button>
         );
       }
@@ -62,10 +59,10 @@ export default function SlotCard({
         return (
           <button
             onClick={onAction}
-            className="ml-auto p-1 rounded hover:bg-green-100 transition-colors"
-            title="Deblokkeren"
+            className="ml-auto p-1 rounded hover:bg-gray-200 transition-colors"
+            title="Klik om te deblokkeren"
           >
-            <Check className="w-5 h-5 text-green-600" />
+            <X className="w-5 h-5 text-gray-600" />
           </button>
         );
       }

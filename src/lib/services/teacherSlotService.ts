@@ -119,11 +119,22 @@ export async function createTeacherBooking(
 
 export async function getParentBooking(
   parentEmail: string
-): Promise<{ success: boolean; error?: string; booking?: TeacherBooking }> {
+): Promise<{ success: boolean; error?: string; booking?: any }> {
   try {
     const { data, error } = await supabase
       .from('teacher_bookings')
-      .select('*')
+      .select(`
+        *,
+        time_slot:teacher_time_slots(
+          date,
+          start_time,
+          end_time
+        ),
+        teacher:teachers(
+          name,
+          email
+        )
+      `)
       .eq('parent_email', parentEmail)
       .maybeSingle();
 

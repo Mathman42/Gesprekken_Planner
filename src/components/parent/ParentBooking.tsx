@@ -198,8 +198,8 @@ export const ParentBooking = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="text-green-600" size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Uw Boeking</h2>
-            <p className="text-gray-600">U heeft al een gesprek ingepland</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Uw afspraak staat gepland</h2>
+            <p className="text-gray-600">Hieronder vindt u de details</p>
           </div>
 
           <div className="bg-blue-50 rounded-lg p-6 mb-6">
@@ -208,6 +208,26 @@ export const ParentBooking = () => {
                 <p className="text-sm text-gray-600">Student:</p>
                 <p className="font-semibold text-gray-900">{myBooking.student_name}</p>
               </div>
+              {myBooking.teacher && (
+                <div>
+                  <p className="text-sm text-gray-600">Docent:</p>
+                  <p className="font-semibold text-gray-900">{myBooking.teacher.name}</p>
+                </div>
+              )}
+              {myBooking.time_slot && (
+                <>
+                  <div>
+                    <p className="text-sm text-gray-600">Datum:</p>
+                    <p className="font-semibold text-gray-900">{formatDate(myBooking.time_slot.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Tijd:</p>
+                    <p className="font-semibold text-gray-900">
+                      {myBooking.time_slot.start_time.slice(0, 5)} - {myBooking.time_slot.end_time.slice(0, 5)}
+                    </p>
+                  </div>
+                </>
+              )}
               <div>
                 <p className="text-sm text-gray-600">Email:</p>
                 <p className="font-semibold text-gray-900">{myBooking.parent_email}</p>
@@ -220,7 +240,7 @@ export const ParentBooking = () => {
               onClick={handleCancelBooking}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
             >
-              Boeking Annuleren
+              Afspraak Annuleren
             </button>
             <button
               onClick={handleLogout}

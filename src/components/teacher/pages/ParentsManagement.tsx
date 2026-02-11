@@ -237,7 +237,7 @@ Met vriendelijke groet,
 
         if (hashedPassword) {
           updateData.password_hash = hashedPassword;
-          updateData.password_must_change = true;
+          updateData.password_must_change = requirePasswordChange;
         }
 
         const { error: updateError } = await supabase

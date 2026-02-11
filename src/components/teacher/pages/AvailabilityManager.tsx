@@ -51,7 +51,23 @@ export const AvailabilityManager = () => {
         .maybeSingle();
 
       if (settingsError) throw settingsError;
-      setTeacherSettings(settings);
+
+      if (settings) {
+        setTeacherSettings(settings);
+      } else {
+        const { data: newSettings, error: insertError } = await supabase
+          .from('teacher_settings')
+          .insert({
+            teacher_id: teacher.id,
+            slot_duration: 15,
+            buffer_time: 5,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        setTeacherSettings(newSettings);
+      }
 
       await loadAvailabilities(teacher.id);
     } catch (err) {

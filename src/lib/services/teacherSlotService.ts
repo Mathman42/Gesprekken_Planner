@@ -121,6 +121,25 @@ export async function createTeacherBooking(
     if (slot.is_blocked) throw new Error('This time slot is blocked');
     if ((slot as any).booking) throw new Error('This time slot is already booked');
 
+    const { data: parent } = await supabase
+      .from('parents')
+      .select('id')
+      .eq('email', booking.parent_email)
+      .maybeSingle();
+
+    if (!parent) throw new Error('Parent not found');
+
+    const { data: relationship } = await supabase
+      .from('parent_teachers')
+      .select('id')
+      .eq('parent_id', parent.id)
+      .eq('teacher_id', booking.teacher_id)
+      .maybeSingle();
+
+    if (!relationship) {
+      throw new Error('U heeft geen toestemming om met deze docent af te spreken');
+    }
+
     const existingBooking = await checkStudentBooking(booking.student_name);
     if (existingBooking.success && existingBooking.booking) {
       throw new Error(`Er bestaat al een afspraak voor ${booking.student_name.trim()}`);

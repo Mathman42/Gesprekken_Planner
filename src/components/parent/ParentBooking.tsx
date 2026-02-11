@@ -37,16 +37,34 @@ export const ParentBooking = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const { data: teachersData } = await supabase
-        .from('teachers')
-        .select('*')
-        .order('name');
-
-      if (teachersData) {
-        setTeachers(teachersData);
-      }
-
       if (email) {
+        const { data: parent } = await supabase
+          .from('parents')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (parent) {
+          const { data: parentTeacherRelations } = await supabase
+            .from('parent_teachers')
+            .select('teacher_id')
+            .eq('parent_id', parent.id);
+
+          const teacherIds = parentTeacherRelations?.map(rel => rel.teacher_id) || [];
+
+          if (teacherIds.length > 0) {
+            const { data: teachersData } = await supabase
+              .from('teachers')
+              .select('*')
+              .in('id', teacherIds)
+              .order('name');
+
+            if (teachersData) {
+              setTeachers(teachersData);
+            }
+          }
+        }
+
         const result = await getParentBooking(email);
         if (result.success && result.booking) {
           setMyBooking(result.booking);

@@ -70,10 +70,24 @@ export const ParentsManagement = () => {
 
   const loadParents = async (teacherId: string) => {
     try {
+      const { data: parentTeacherRelations, error: relError } = await supabase
+        .from('parent_teachers')
+        .select('parent_id')
+        .eq('teacher_id', teacherId);
+
+      if (relError) throw relError;
+
+      const parentIds = parentTeacherRelations?.map(rel => rel.parent_id) || [];
+
+      if (parentIds.length === 0) {
+        setParents([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('parents')
         .select('*')
-        .eq('teacher_id', teacherId)
+        .in('id', parentIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -248,17 +262,54 @@ Met vriendelijke groet,
         if (updateError) throw updateError;
         setSuccess('Ouder succesvol bijgewerkt');
       } else {
-        const { error: insertError } = await supabase
+        const { data: existingParent } = await supabase
           .from('parents')
+          .select('id')
+          .eq('email', formData.email)
+          .maybeSingle();
+
+        let parentId: string;
+
+        if (existingParent) {
+          const { error: updateError } = await supabase
+            .from('parents')
+            .update({
+              name: formData.name,
+              password_hash: hashedPassword,
+              password_must_change: hashedPassword ? requirePasswordChange : false,
+            })
+            .eq('id', existingParent.id);
+
+          if (updateError) throw updateError;
+          parentId = existingParent.id;
+        } else {
+          const { data: newParent, error: insertError } = await supabase
+            .from('parents')
+            .insert({
+              email: formData.email,
+              name: formData.name,
+              password_hash: hashedPassword,
+              password_must_change: hashedPassword ? requirePasswordChange : false,
+              teacher_id: teacherId,
+            })
+            .select('id')
+            .single();
+
+          if (insertError) throw insertError;
+          parentId = newParent.id;
+        }
+
+        const { error: junctionError } = await supabase
+          .from('parent_teachers')
           .insert({
-            email: formData.email,
-            name: formData.name,
-            password_hash: hashedPassword,
-            password_must_change: hashedPassword ? requirePasswordChange : false,
+            parent_id: parentId,
             teacher_id: teacherId,
           });
 
-        if (insertError) throw insertError;
+        if (junctionError && !junctionError.message.includes('duplicate')) {
+          throw junctionError;
+        }
+
         setSuccess('Ouder succesvol toegevoegd');
       }
 
@@ -286,19 +337,25 @@ Met vriendelijke groet,
   };
 
   const handleDelete = async (parentId: string) => {
-    if (!confirm('Weet u zeker dat u deze ouder wilt verwijderen?')) {
+    if (!confirm('Weet u zeker dat u deze ouder wilt verwijderen uit uw lijst?')) {
       return;
     }
 
     try {
+      if (!teacherId) {
+        setError('Docent ID niet gevonden');
+        return;
+      }
+
       const { error } = await supabase
-        .from('parents')
+        .from('parent_teachers')
         .delete()
-        .eq('id', parentId);
+        .eq('parent_id', parentId)
+        .eq('teacher_id', teacherId);
 
       if (error) throw error;
-      setSuccess('Ouder succesvol verwijderd');
-      if (teacherId) loadParents(teacherId);
+      setSuccess('Ouder succesvol verwijderd uit uw lijst');
+      loadParents(teacherId);
     } catch (err: any) {
       console.error('Error deleting parent:', err);
       setError(err.message || 'Kan ouder niet verwijderen');

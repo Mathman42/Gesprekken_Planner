@@ -463,7 +463,7 @@ export const ParentBooking = () => {
                 <p className="text-gray-600">Geen beschikbare tijdslots</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="flex flex-col gap-2 max-w-2xl mx-auto">
                 {slots.map((slot) => (
                   <SlotCard
                     key={slot.id}

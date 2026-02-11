@@ -122,7 +122,7 @@ export default function TimeSlotManager({ teacherId, date, onBack }: TimeSlotMan
           Er zijn geen tijdsloten gegenereerd voor deze dag.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="flex flex-col gap-2 max-w-2xl mx-auto">
           {slots.map((slot) => (
             <SlotCard
               key={slot.id}

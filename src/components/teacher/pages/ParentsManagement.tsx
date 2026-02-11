@@ -39,9 +39,11 @@ export const ParentsManagement = () => {
   const [templateLoading, setTemplateLoading] = useState(false);
   const [previewParentId, setPreviewParentId] = useState<string>('');
   const [teacherName, setTeacherName] = useState('');
+  const [requirePasswordChange, setRequirePasswordChange] = useState(false);
 
   useEffect(() => {
     loadTeacherAndParents();
+    loadPasswordChangeSetting();
   }, [teacherEmail]);
 
   const loadTeacherAndParents = async () => {
@@ -112,6 +114,22 @@ Met vriendelijke groet,
       setEmailTemplate(data?.invitation_email_template || defaultTemplate);
     } catch (err) {
       console.error('Error loading email template:', err);
+    }
+  };
+
+  const loadPasswordChangeSetting = async () => {
+    try {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'parent_password_must_change_on_first_login')
+        .maybeSingle();
+
+      if (data && data.value !== undefined) {
+        setRequirePasswordChange(data.value === true);
+      }
+    } catch (err) {
+      console.error('Error loading password change setting:', err);
     }
   };
 
@@ -236,7 +254,7 @@ Met vriendelijke groet,
             email: formData.email,
             name: formData.name,
             password_hash: hashedPassword,
-            password_must_change: hashedPassword ? true : false,
+            password_must_change: hashedPassword ? requirePasswordChange : false,
             teacher_id: teacherId,
           });
 

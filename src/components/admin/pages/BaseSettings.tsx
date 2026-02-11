@@ -23,6 +23,7 @@ export const BaseSettings = () => {
     captchaEnabled: false,
     sendConfirmation: true,
     magicLinkEnabled: true,
+    parentPasswordChangeRequired: false,
   });
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export const BaseSettings = () => {
         captchaEnabled: settingsMap.captcha_enabled === true,
         sendConfirmation: settingsMap.send_booking_confirmation !== false,
         magicLinkEnabled: settingsMap.magic_link_enabled !== false,
+        parentPasswordChangeRequired: settingsMap.parent_password_must_change_on_first_login === true,
       });
     }
   };
@@ -76,6 +78,7 @@ export const BaseSettings = () => {
         { key: 'captcha_enabled', value: settings.captchaEnabled },
         { key: 'send_booking_confirmation', value: settings.sendConfirmation },
         { key: 'magic_link_enabled', value: settings.magicLinkEnabled },
+        { key: 'parent_password_must_change_on_first_login', value: settings.parentPasswordChangeRequired },
       ];
 
       for (const update of updates) {
@@ -304,6 +307,35 @@ export const BaseSettings = () => {
           </div>
         </div>
 
+        {/* Parent Password Change Required Toggle */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Wachtwoord wijzigen vereist bij eerste login
+              </label>
+              <p className="text-sm text-gray-600 mt-1">
+                Verplicht ouders om hun wachtwoord te wijzigen bij de eerste keer inloggen
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setSettings({ ...settings, parentPasswordChangeRequired: !settings.parentPasswordChangeRequired })
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                settings.parentPasswordChangeRequired ? 'bg-blue-900' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.parentPasswordChangeRequired ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* Save Button */}
         <div className="border-t border-gray-200 pt-6">
           <button
@@ -408,6 +440,9 @@ export const BaseSettings = () => {
               </li>
               <li>
                 <strong>Magic Link:</strong> Ouders kunnen inloggen zonder wachtwoord via een veilige link in hun email
+              </li>
+              <li>
+                <strong>Wachtwoord wijzigen vereist:</strong> Wanneer ingeschakeld, moeten nieuwe ouders hun wachtwoord wijzigen bij de eerste keer inloggen. Bestaande ouders worden niet beïnvloed.
               </li>
             </ul>
           </div>

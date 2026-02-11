@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Mail, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Mail, AlertCircle, Plus, Edit2, Trash2, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { getTeacherBookings } from '../../../lib/services/teacherSlotService';
+import { CreateBookingModal } from '../modals/CreateBookingModal';
+import { EditBookingModal } from '../modals/EditBookingModal';
+import { DeleteConfirmModal } from '../modals/DeleteConfirmModal';
 
 interface BookingWithSlot {
   id: string;
@@ -24,6 +27,11 @@ export const MyBookings = () => {
   const [groupedBookings, setGroupedBookings] = useState<GroupedBookings>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [teacherId, setTeacherId] = useState<string>('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<BookingWithSlot | null>(null);
+  const [deletingBooking, setDeletingBooking] = useState<BookingWithSlot | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     loadBookings();
@@ -52,6 +60,8 @@ export const MyBookings = () => {
         setLoading(false);
         return;
       }
+
+      setTeacherId(teacherData.id);
 
       const result = await getTeacherBookings(teacherData.id);
 
@@ -113,6 +123,12 @@ export const MyBookings = () => {
     return timeStr.slice(0, 5);
   };
 
+  const handleSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 5000);
+    loadBookings();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -154,11 +170,30 @@ export const MyBookings = () => {
 
   return (
     <div className="space-y-6">
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+          <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" size={20} />
+          <p className="text-green-700 font-medium">{successMessage}</p>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Mijn Gesprekken</h1>
-        <p className="text-gray-600">
-          Overzicht van alle ingeplande ouderavonden
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Mijn Gesprekken</h1>
+            <p className="text-gray-600">
+              Overzicht van alle ingeplande ouderavonden
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+            disabled={loading}
+          >
+            <Plus size={20} />
+            Nieuwe Afspraak
+          </button>
+        </div>
       </div>
 
       {Object.keys(groupedBookings).length === 0 ? (
@@ -222,6 +257,23 @@ export const MyBookings = () => {
                           </div>
                         </div>
                       </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setEditingBooking(booking)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Wijzigen"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => setDeletingBooking(booking)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Verwijderen"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -229,6 +281,31 @@ export const MyBookings = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {showCreateModal && (
+        <CreateBookingModal
+          teacherId={teacherId}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => handleSuccess('Afspraak succesvol aangemaakt')}
+        />
+      )}
+
+      {editingBooking && (
+        <EditBookingModal
+          teacherId={teacherId}
+          booking={editingBooking}
+          onClose={() => setEditingBooking(null)}
+          onSuccess={() => handleSuccess('Afspraak succesvol gewijzigd')}
+        />
+      )}
+
+      {deletingBooking && (
+        <DeleteConfirmModal
+          booking={deletingBooking}
+          onClose={() => setDeletingBooking(null)}
+          onSuccess={() => handleSuccess('Afspraak succesvol verwijderd')}
+        />
       )}
     </div>
   );

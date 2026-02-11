@@ -273,3 +273,151 @@ export async function getTeacherBookings(
     return { success: false, error: (error as Error).message };
   }
 }
+
+export async function getLinkedParents(
+  teacherId: string
+): Promise<{ success: boolean; error?: string; parents?: any[] }> {
+  try {
+    const { data, error } = await supabase
+      .from('parent_teachers')
+      .select(`
+        parent:parents(
+          id,
+          email,
+          name
+        )
+      `)
+      .eq('teacher_id', teacherId);
+
+    if (error) throw error;
+
+    const parents = data?.map((item: any) => item.parent).filter(Boolean) || [];
+
+    return { success: true, parents };
+  } catch (error) {
+    console.error('Error fetching linked parents:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+export async function getAvailableTimeSlotsForDate(
+  teacherId: string,
+  date: string
+): Promise<{ success: boolean; error?: string; slots?: TeacherTimeSlot[] }> {
+  try {
+    const { data: allSlots, error: slotsError } = await supabase
+      .from('teacher_time_slots')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .eq('date', date)
+      .eq('is_blocked', false)
+      .order('start_time');
+
+    if (slotsError) throw slotsError;
+
+    const { data: bookings, error: bookingsError } = await supabase
+      .from('teacher_bookings')
+      .select('teacher_time_slot_id')
+      .eq('teacher_id', teacherId);
+
+    if (bookingsError) throw bookingsError;
+
+    const bookedSlotIds = new Set(bookings?.map((b) => b.teacher_time_slot_id) || []);
+
+    const availableSlots = allSlots?.filter((slot) => !bookedSlotIds.has(slot.id)) || [];
+
+    return { success: true, slots: availableSlots };
+  } catch (error) {
+    console.error('Error fetching available slots:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+export async function createBookingAsTeacher(
+  booking: Omit<TeacherBookingInsert, 'id' | 'created_at'>
+): Promise<{ success: boolean; error?: string; booking?: TeacherBooking }> {
+  try {
+    const { data: slot, error: slotError } = await supabase
+      .from('teacher_time_slots')
+      .select('*, booking:teacher_bookings(id)')
+      .eq('id', booking.teacher_time_slot_id)
+      .maybeSingle();
+
+    if (slotError) throw slotError;
+    if (!slot) throw new Error('Tijdslot niet gevonden');
+    if (slot.is_blocked) throw new Error('Dit tijdslot is geblokkeerd');
+    if ((slot as any).booking) throw new Error('Dit tijdslot is al geboekt');
+
+    const existingBooking = await checkStudentBooking(booking.student_name);
+    if (existingBooking.success && existingBooking.booking) {
+      throw new Error(`Er bestaat al een afspraak voor ${booking.student_name.trim()}`);
+    }
+
+    const { data, error } = await supabase
+      .from('teacher_bookings')
+      .insert([booking])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, booking: data };
+  } catch (error) {
+    console.error('Error creating booking as teacher:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+export async function updateTeacherBooking(
+  bookingId: string,
+  updates: {
+    student_name?: string;
+    parent_email?: string;
+    teacher_time_slot_id?: string;
+  }
+): Promise<{ success: boolean; error?: string; booking?: TeacherBooking }> {
+  try {
+    const { data: currentBooking, error: fetchError } = await supabase
+      .from('teacher_bookings')
+      .select('*')
+      .eq('id', bookingId)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!currentBooking) throw new Error('Afspraak niet gevonden');
+
+    if (updates.teacher_time_slot_id && updates.teacher_time_slot_id !== currentBooking.teacher_time_slot_id) {
+      const { data: newSlot, error: slotError } = await supabase
+        .from('teacher_time_slots')
+        .select('*, booking:teacher_bookings(id)')
+        .eq('id', updates.teacher_time_slot_id)
+        .maybeSingle();
+
+      if (slotError) throw slotError;
+      if (!newSlot) throw new Error('Nieuw tijdslot niet gevonden');
+      if (newSlot.is_blocked) throw new Error('Het nieuwe tijdslot is geblokkeerd');
+      if ((newSlot as any).booking) throw new Error('Het nieuwe tijdslot is al geboekt');
+    }
+
+    if (updates.student_name && updates.student_name.trim() !== currentBooking.student_name.trim()) {
+      const existingBooking = await checkStudentBooking(updates.student_name);
+      if (existingBooking.success && existingBooking.booking && existingBooking.booking.id !== bookingId) {
+        throw new Error(`Er bestaat al een afspraak voor ${updates.student_name.trim()}`);
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('teacher_bookings')
+      .update(updates)
+      .eq('id', bookingId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { success: true, booking: data };
+  } catch (error) {
+    console.error('Error updating booking:', error);
+    return { success: false, error: (error as Error).message };
+  }
+}

@@ -231,15 +231,15 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
               Inloggen met wachtwoord
             </button>
 
-            <button
-              onClick={() => magicLinkEnabled && setLoginMethod('magic-link')}
-              disabled={!magicLinkEnabled}
-              className="w-full bg-white text-blue-900 font-medium py-4 px-4 rounded-lg flex items-center justify-center gap-3 border-2 border-blue-900 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-300 disabled:cursor-not-allowed"
-            >
-              <Mail size={20} />
-              Inloggen met e-mail link
-              {!magicLinkEnabled && <span className="text-xs">(uitgeschakeld)</span>}
-            </button>
+            {magicLinkEnabled && (
+              <button
+                onClick={() => setLoginMethod('magic-link')}
+                className="w-full bg-white text-blue-900 font-medium py-4 px-4 rounded-lg flex items-center justify-center gap-3 border-2 border-blue-900 hover:bg-blue-50 transition-colors"
+              >
+                <Mail size={20} />
+                Inloggen met e-mail link
+              </button>
+            )}
           </div>
 
           {onBack && (

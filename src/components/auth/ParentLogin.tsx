@@ -231,7 +231,7 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
               Inloggen met wachtwoord
             </button>
 
-            {magicLinkEnabled && (
+            {false && (
               <button
                 onClick={() => setLoginMethod('magic-link')}
                 className="w-full bg-white text-blue-900 font-medium py-4 px-4 rounded-lg flex items-center justify-center gap-3 border-2 border-blue-900 hover:bg-blue-50 transition-colors"

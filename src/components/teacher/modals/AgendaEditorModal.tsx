@@ -152,7 +152,7 @@ export default function AgendaEditorModal({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
-            {agendaId ? 'Edit Agenda' : 'Create New Agenda'}
+            {agendaId ? 'Bewerk Agenda' : 'Maak Nieuwe Agenda'}
           </h2>
           <button
             onClick={onClose}
@@ -163,19 +163,19 @@ export default function AgendaEditorModal({
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-8 text-center text-gray-500">Laden...</div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Agenda Title
+                Agenda Titel
               </label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="e.g., Spring 2026 Parent-Teacher Conversations"
+                placeholder="bijv. Lente 2026 Oudergesprekken"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
@@ -183,13 +183,13 @@ export default function AgendaEditorModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description (Optional)
+                Beschrijving (Optioneel)
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Add notes about this agenda period..."
+                placeholder="Voeg notities toe over deze agenda periode..."
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -199,7 +199,7 @@ export default function AgendaEditorModal({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
-                  Start Date
+                  Startdatum
                 </label>
                 <input
                   type="date"
@@ -214,7 +214,7 @@ export default function AgendaEditorModal({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
-                  End Date
+                  Einddatum
                 </label>
                 <input
                   type="date"
@@ -230,7 +230,7 @@ export default function AgendaEditorModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Clock className="w-4 h-4 inline mr-1" />
-                Slot Duration (minutes)
+                Tijdslot Duur (minuten)
               </label>
               <select
                 name="slot_duration_minutes"
@@ -238,12 +238,12 @@ export default function AgendaEditorModal({
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value={10}>10 minutes</option>
-                <option value={15}>15 minutes</option>
-                <option value={20}>20 minutes</option>
-                <option value={30}>30 minutes</option>
-                <option value={45}>45 minutes</option>
-                <option value={60}>60 minutes</option>
+                <option value={10}>10 minuten</option>
+                <option value={15}>15 minuten</option>
+                <option value={20}>20 minuten</option>
+                <option value={30}>30 minuten</option>
+                <option value={45}>45 minuten</option>
+                <option value={60}>60 minuten</option>
               </select>
             </div>
 
@@ -257,16 +257,16 @@ export default function AgendaEditorModal({
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="closed">Closed</option>
-                <option value="archived">Archived</option>
+                <option value="draft">Concept</option>
+                <option value="active">Actief</option>
+                <option value="closed">Gesloten</option>
+                <option value="archived">Gearchiveerd</option>
               </select>
               <p className="mt-1 text-sm text-gray-500">
-                {formData.status === 'draft' && 'Not visible to parents'}
-                {formData.status === 'active' && 'Visible and ready for booking'}
-                {formData.status === 'closed' && 'No new bookings allowed'}
-                {formData.status === 'archived' && 'Hidden from main list'}
+                {formData.status === 'draft' && 'Niet zichtbaar voor ouders'}
+                {formData.status === 'active' && 'Zichtbaar en klaar voor boeken'}
+                {formData.status === 'closed' && 'Geen nieuwe boekingen toegestaan'}
+                {formData.status === 'archived' && 'Verborgen uit hoofdlijst'}
               </p>
             </div>
 
@@ -282,7 +282,7 @@ export default function AgendaEditorModal({
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label htmlFor="is_booking_open" className="text-sm font-medium text-gray-700">
-                    Allow parents to book slots
+                    Ouders mogen tijdslots boeken
                   </label>
                 </div>
 
@@ -359,14 +359,14 @@ export default function AgendaEditorModal({
                 className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-5 h-5" />
-                {saving ? 'Saving...' : agendaId ? 'Update Agenda' : 'Create Agenda'}
+                {saving ? 'Opslaan...' : agendaId ? 'Bijwerken' : 'Aanmaken'}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
-                Cancel
+                Annuleren
               </button>
             </div>
           </form>

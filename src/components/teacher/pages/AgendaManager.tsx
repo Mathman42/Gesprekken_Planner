@@ -47,7 +47,7 @@ export default function AgendaManager({
   };
 
   const handleCloseAgenda = async (agendaId: string) => {
-    if (!confirm('Are you sure you want to close this agenda? Parents will no longer be able to book slots.')) {
+    if (!confirm('Weet je zeker dat je deze agenda wilt sluiten? Ouders kunnen geen nieuwe tijdslots meer boeken.')) {
       return;
     }
 
@@ -60,7 +60,7 @@ export default function AgendaManager({
   };
 
   const handleArchiveAgenda = async (agendaId: string) => {
-    if (!confirm('Archive this agenda? It will be hidden from the main list but data will be preserved.')) {
+    if (!confirm('Deze agenda archiveren? Het wordt verborgen uit de lijst maar alle gegevens blijven bewaard.')) {
       return;
     }
 
@@ -73,7 +73,7 @@ export default function AgendaManager({
   };
 
   const handleDeleteAgenda = async (agendaId: string) => {
-    if (!confirm('Delete this draft agenda? This action cannot be undone.')) {
+    if (!confirm('Deze concept agenda verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) {
       return;
     }
 
@@ -119,27 +119,27 @@ export default function AgendaManager({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">My Agendas</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Mijn Agenda's</h2>
         <button
           onClick={onCreateNew}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          Create New Agenda
+          Maak Nieuwe Agenda
         </button>
       </div>
 
       {agendas.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
           <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No agendas yet</h3>
-          <p className="text-gray-600 mb-6">Create your first agenda to start managing conversation slots</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen agenda's</h3>
+          <p className="text-gray-600 mb-6">Maak je eerste agenda om gesprekstijdslots te beheren</p>
           <button
             onClick={onCreateNew}
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Create Agenda
+            Maak Nieuwe Agenda
           </button>
         </div>
       ) : (
@@ -158,7 +158,7 @@ export default function AgendaManager({
                     </span>
                     {agenda.is_booking_open && (
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Booking Open
+                        Boeken Open
                       </span>
                     )}
                   </div>
@@ -179,15 +179,15 @@ export default function AgendaManager({
               <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-gray-200">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{agenda.total_slots}</div>
-                  <div className="text-sm text-gray-600">Total Slots</div>
+                  <div className="text-sm text-gray-600">Totaal Tijdslots</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{agenda.booked_slots}</div>
-                  <div className="text-sm text-gray-600">Booked</div>
+                  <div className="text-sm text-gray-600">Geboekt</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">{agenda.available_slots}</div>
-                  <div className="text-sm text-gray-600">Available</div>
+                  <div className="text-sm text-gray-600">Beschikbaar</div>
                 </div>
               </div>
 
@@ -197,7 +197,7 @@ export default function AgendaManager({
                   className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                 >
                   <Eye className="w-4 h-4" />
-                  View Bookings
+                  Bekijk Boekingen
                 </button>
 
                 {agenda.status !== 'archived' && (
@@ -206,7 +206,7 @@ export default function AgendaManager({
                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                   >
                     <Edit className="w-4 h-4" />
-                    Edit
+                    Bewerken
                   </button>
                 )}
 
@@ -222,12 +222,12 @@ export default function AgendaManager({
                     {agenda.is_booking_open ? (
                       <>
                         <Lock className="w-4 h-4" />
-                        Close Booking
+                        Boeken Sluiten
                       </>
                     ) : (
                       <>
                         <Unlock className="w-4 h-4" />
-                        Open Booking
+                        Boeken Openen
                       </>
                     )}
                   </button>
@@ -239,7 +239,7 @@ export default function AgendaManager({
                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
                   >
                     <Lock className="w-4 h-4" />
-                    Close Agenda
+                    Sluit Agenda
                   </button>
                 )}
 
@@ -249,7 +249,7 @@ export default function AgendaManager({
                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                   >
                     <Archive className="w-4 h-4" />
-                    Archive
+                    Archiveren
                   </button>
                 )}
 
@@ -259,7 +259,7 @@ export default function AgendaManager({
                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete
+                    Verwijderen
                   </button>
                 )}
               </div>

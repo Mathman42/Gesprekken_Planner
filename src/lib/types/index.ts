@@ -70,7 +70,10 @@ export interface EventWithStats extends Event {
   available_slots: number;
 }
 
-export type UserRole = 'admin' | 'parent' | 'teacher';
+export type Coordinator = Database['public']['Tables']['coordinators']['Row'];
+export type CoordinatorInsert = Database['public']['Tables']['coordinators']['Insert'];
+
+export type UserRole = 'admin' | 'parent' | 'teacher' | 'coordinator';
 
 export interface AuthState {
   isAuthenticated: boolean;

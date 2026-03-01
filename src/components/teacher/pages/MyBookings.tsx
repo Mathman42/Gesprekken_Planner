@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Mail, AlertCircle, Plus, Edit2, Trash2, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, User, Mail, AlertCircle, Plus, Edit2, Trash2, CheckCircle, Download } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { getTeacherBookings } from '../../../lib/services/teacherSlotService';
 import { CreateBookingModal } from '../modals/CreateBookingModal';
@@ -129,6 +129,32 @@ export const MyBookings = () => {
     loadBookings();
   };
 
+  const exportToCSV = () => {
+    const headers = ['Datum', 'Starttijd', 'Eindtijd', 'Leerling', 'Ouder Email'];
+    const rows = bookings.map(booking => [
+      booking.time_slot.date,
+      formatTime(booking.time_slot.start_time),
+      formatTime(booking.time_slot.end_time),
+      booking.student_name,
+      booking.parent_email,
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `gesprekken_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -185,14 +211,24 @@ export const MyBookings = () => {
               Overzicht van alle ingeplande ouderavonden
             </p>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
-            disabled={loading}
-          >
-            <Plus size={20} />
-            Nieuwe Afspraak
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              disabled={loading || bookings.length === 0}
+            >
+              <Download size={20} />
+              Exporteer CSV
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+              disabled={loading}
+            >
+              <Plus size={20} />
+              Nieuwe Afspraak
+            </button>
+          </div>
         </div>
       </div>
 

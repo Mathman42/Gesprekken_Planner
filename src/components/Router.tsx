@@ -4,17 +4,20 @@ import { AdminLogin } from './auth/AdminLogin';
 import { AdminRegistration } from './auth/AdminRegistration';
 import { TeacherLogin } from './auth/TeacherLogin';
 import { ParentLogin } from './auth/ParentLogin';
+import CoordinatorLogin from './auth/CoordinatorLogin';
 import { MagicLinkVerify } from './auth/MagicLinkVerify';
 import { PasswordChange } from './auth/PasswordChange';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { TeacherDashboard } from './teacher/TeacherDashboard';
 import { ParentBooking } from './parent/ParentBooking';
+import CoordinatorDashboard from './coordinator/CoordinatorDashboard';
 import { InitAdmin } from './setup/InitAdmin';
 
 export type Page =
   | 'home'
   | 'admin-login'
   | 'teacher-login'
+  | 'coordinator-login'
   | 'admin-registration'
   | 'parent-login'
   | 'verify'
@@ -22,6 +25,7 @@ export type Page =
   | 'admin-dashboard'
   | 'teacher-dashboard'
   | 'parent-booking'
+  | 'coordinator-dashboard'
   | 'init-admin';
 
 export const Router = () => {
@@ -62,6 +66,8 @@ export const Router = () => {
         setCurrentPage('teacher-dashboard');
       } else if (role === 'parent') {
         setCurrentPage('parent-booking');
+      } else if (role === 'coordinator') {
+        setCurrentPage('coordinator-dashboard');
       }
       return;
     }
@@ -97,7 +103,7 @@ export const Router = () => {
             </h1>
             <p className="text-gray-600 mb-8">Kempenhorst College</p>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
               <button
                 onClick={() => navigate('parent-login')}
                 className="bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
@@ -112,6 +118,16 @@ export const Router = () => {
               >
                 <div className="text-lg mb-1">Docent</div>
                 <div className="text-sm opacity-90">Beschikbaarheid</div>
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <button
+                onClick={() => navigate('coordinator-login')}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+              >
+                <div className="text-lg mb-1">Coordinator</div>
+                <div className="text-sm opacity-90">Gesprekken bekijken</div>
               </button>
 
               <button
@@ -152,6 +168,10 @@ export const Router = () => {
         }}
       />
     );
+  }
+
+  if (currentPage === 'coordinator-login') {
+    return <CoordinatorLogin />;
   }
 
   if (currentPage === 'admin-registration') {
@@ -218,6 +238,10 @@ export const Router = () => {
 
   if (currentPage === 'parent-booking' && isAuthenticated && role === 'parent') {
     return <ParentBooking />;
+  }
+
+  if (currentPage === 'coordinator-dashboard' && isAuthenticated && role === 'coordinator') {
+    return <CoordinatorDashboard />;
   }
 
   // Default fallback

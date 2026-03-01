@@ -38,18 +38,10 @@ export async function generateSlotsForAvailabilityPeriod(
 
 export async function getTeacherTimeSlotsForDate(
   teacherId: string,
-  date: string
+  date: string,
+  filterByActiveAgenda: boolean = false
 ): Promise<{ success: boolean; error?: string; slots?: TeacherTimeSlotWithBooking[] }> {
   try {
-    const { data: activeAgendas } = await supabase
-      .from('teacher_agendas')
-      .select('id')
-      .eq('teacher_id', teacherId)
-      .eq('status', 'active')
-      .eq('is_booking_open', true);
-
-    const activeAgendaIds = activeAgendas?.map(a => a.id) || [];
-
     let slotsQuery = supabase
       .from('teacher_time_slots')
       .select('*')
@@ -57,10 +49,21 @@ export async function getTeacherTimeSlotsForDate(
       .eq('date', date)
       .order('start_time');
 
-    if (activeAgendaIds.length > 0) {
+    if (filterByActiveAgenda) {
+      const { data: activeAgendas } = await supabase
+        .from('teacher_agendas')
+        .select('id')
+        .eq('teacher_id', teacherId)
+        .eq('status', 'active')
+        .eq('is_booking_open', true);
+
+      const activeAgendaIds = activeAgendas?.map(a => a.id) || [];
+
+      if (activeAgendaIds.length === 0) {
+        return { success: true, slots: [] };
+      }
+
       slotsQuery = slotsQuery.in('agenda_id', activeAgendaIds);
-    } else {
-      return { success: true, slots: [] };
     }
 
     const { data: slots, error: slotsError } = await slotsQuery;

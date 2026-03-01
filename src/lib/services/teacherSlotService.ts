@@ -17,9 +17,14 @@ export async function generateSlotsForAvailabilityPeriod(
   try {
     const slots = generateSlotsForAvailability(availability, slotDuration, bufferTime);
 
+    const slotsWithAgenda = slots.map(slot => ({
+      ...slot,
+      agenda_id: availability.agenda_id,
+    }));
+
     const { data, error } = await supabase
       .from('teacher_time_slots')
-      .insert(slots)
+      .insert(slotsWithAgenda)
       .select();
 
     if (error) throw error;
@@ -36,12 +41,29 @@ export async function getTeacherTimeSlotsForDate(
   date: string
 ): Promise<{ success: boolean; error?: string; slots?: TeacherTimeSlotWithBooking[] }> {
   try {
-    const { data: slots, error: slotsError } = await supabase
+    const { data: activeAgendas } = await supabase
+      .from('teacher_agendas')
+      .select('id')
+      .eq('teacher_id', teacherId)
+      .eq('status', 'active')
+      .eq('is_booking_open', true);
+
+    const activeAgendaIds = activeAgendas?.map(a => a.id) || [];
+
+    let slotsQuery = supabase
       .from('teacher_time_slots')
       .select('*')
       .eq('teacher_id', teacherId)
       .eq('date', date)
       .order('start_time');
+
+    if (activeAgendaIds.length > 0) {
+      slotsQuery = slotsQuery.in('agenda_id', activeAgendaIds);
+    } else {
+      return { success: true, slots: [] };
+    }
+
+    const { data: slots, error: slotsError } = await slotsQuery;
 
     if (slotsError) throw slotsError;
 
@@ -145,9 +167,14 @@ export async function createTeacherBooking(
       throw new Error(`Er bestaat al een afspraak voor ${booking.student_name.trim()}`);
     }
 
+    const bookingWithAgenda = {
+      ...booking,
+      agenda_id: slot.agenda_id,
+    };
+
     const { data, error } = await supabase
       .from('teacher_bookings')
-      .insert([booking])
+      .insert([bookingWithAgenda])
       .select()
       .single();
 
@@ -212,11 +239,25 @@ export async function getAvailableTeacherDates(
   teacherId: string
 ): Promise<{ success: boolean; error?: string; dates?: string[] }> {
   try {
+    const { data: activeAgendas } = await supabase
+      .from('teacher_agendas')
+      .select('id')
+      .eq('teacher_id', teacherId)
+      .eq('status', 'active')
+      .eq('is_booking_open', true);
+
+    const activeAgendaIds = activeAgendas?.map(a => a.id) || [];
+
+    if (activeAgendaIds.length === 0) {
+      return { success: true, dates: [] };
+    }
+
     const { data, error } = await supabase
       .from('teacher_availability')
       .select('date')
       .eq('teacher_id', teacherId)
       .eq('is_available', true)
+      .in('agenda_id', activeAgendaIds)
       .order('date');
 
     if (error) throw error;
@@ -353,9 +394,14 @@ export async function createBookingAsTeacher(
       throw new Error(`Er bestaat al een afspraak voor ${booking.student_name.trim()}`);
     }
 
+    const bookingWithAgenda = {
+      ...booking,
+      agenda_id: slot.agenda_id,
+    };
+
     const { data, error } = await supabase
       .from('teacher_bookings')
-      .insert([booking])
+      .insert([bookingWithAgenda])
       .select()
       .single();
 

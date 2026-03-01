@@ -252,10 +252,55 @@ export interface Database {
           created_at?: string;
         };
       };
+      teacher_agendas: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          title: string;
+          description: string | null;
+          status: 'draft' | 'active' | 'closed' | 'archived';
+          start_date: string;
+          end_date: string;
+          is_booking_open: boolean;
+          slot_duration_minutes: number;
+          created_at: string;
+          updated_at: string;
+          closed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          title: string;
+          description?: string | null;
+          status?: 'draft' | 'active' | 'closed' | 'archived';
+          start_date: string;
+          end_date: string;
+          is_booking_open?: boolean;
+          slot_duration_minutes?: number;
+          created_at?: string;
+          updated_at?: string;
+          closed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          teacher_id?: string;
+          title?: string;
+          description?: string | null;
+          status?: 'draft' | 'active' | 'closed' | 'archived';
+          start_date?: string;
+          end_date?: string;
+          is_booking_open?: boolean;
+          slot_duration_minutes?: number;
+          created_at?: string;
+          updated_at?: string;
+          closed_at?: string | null;
+        };
+      };
       teacher_availability: {
         Row: {
           id: string;
           teacher_id: string;
+          agenda_id: string | null;
           date: string;
           start_time: string;
           end_time: string;
@@ -265,6 +310,7 @@ export interface Database {
         Insert: {
           id?: string;
           teacher_id: string;
+          agenda_id?: string | null;
           date: string;
           start_time: string;
           end_time: string;
@@ -274,6 +320,7 @@ export interface Database {
         Update: {
           id?: string;
           teacher_id?: string;
+          agenda_id?: string | null;
           date?: string;
           start_time?: string;
           end_time?: string;
@@ -286,6 +333,7 @@ export interface Database {
           id: string;
           teacher_availability_id: string;
           teacher_id: string;
+          agenda_id: string | null;
           date: string;
           start_time: string;
           end_time: string;
@@ -296,6 +344,7 @@ export interface Database {
           id?: string;
           teacher_availability_id: string;
           teacher_id: string;
+          agenda_id?: string | null;
           date: string;
           start_time: string;
           end_time: string;
@@ -306,6 +355,7 @@ export interface Database {
           id?: string;
           teacher_availability_id?: string;
           teacher_id?: string;
+          agenda_id?: string | null;
           date?: string;
           start_time?: string;
           end_time?: string;
@@ -318,6 +368,7 @@ export interface Database {
           id: string;
           teacher_time_slot_id: string;
           teacher_id: string;
+          agenda_id: string | null;
           parent_id: string | null;
           parent_email: string;
           student_name: string;
@@ -328,6 +379,7 @@ export interface Database {
           id?: string;
           teacher_time_slot_id: string;
           teacher_id: string;
+          agenda_id?: string | null;
           parent_id?: string | null;
           parent_email: string;
           student_name: string;
@@ -338,6 +390,7 @@ export interface Database {
           id?: string;
           teacher_time_slot_id?: string;
           teacher_id?: string;
+          agenda_id?: string | null;
           parent_id?: string | null;
           parent_email?: string;
           student_name?: string;

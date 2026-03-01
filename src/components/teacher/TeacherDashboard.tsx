@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Calendar,
   LogOut,
@@ -14,13 +14,44 @@ import { AvailabilityManager } from './pages/AvailabilityManager';
 import { ParentsManagement } from './pages/ParentsManagement';
 import { TeacherSettings } from './pages/TeacherSettings';
 import { MyBookings } from './pages/MyBookings';
+import AgendaManager from './pages/AgendaManager';
+import ClosedAgendaViewer from './pages/ClosedAgendaViewer';
+import AgendaEditorModal from './modals/AgendaEditorModal';
+import { supabase } from '../../lib/supabase';
 
 type TeacherPage = 'availability' | 'parents' | 'events' | 'bookings' | 'settings';
 
 export const TeacherDashboard = () => {
   const [currentPage, setCurrentPage] = useState<TeacherPage>('parents');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [teacherId, setTeacherId] = useState<string | null>(null);
+  const [viewingAgendaId, setViewingAgendaId] = useState<string | null>(null);
+  const [editingAgendaId, setEditingAgendaId] = useState<string | null>(null);
+  const [showAgendaEditor, setShowAgendaEditor] = useState(false);
   const { logout, email } = useAuth();
+
+  useEffect(() => {
+    if (email) {
+      loadTeacherId();
+    }
+  }, [email]);
+
+  const loadTeacherId = async () => {
+    if (!email) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('teachers')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setTeacherId(data.id);
+    } catch (err) {
+      console.error('Failed to load teacher ID:', err);
+    }
+  };
 
   const navigation = [
     { id: 'parents' as TeacherPage, label: 'Ouders Beheren', icon: Users },
@@ -35,12 +66,54 @@ export const TeacherDashboard = () => {
     window.location.href = '/';
   };
 
+  const handleCreateAgenda = () => {
+    setEditingAgendaId(null);
+    setShowAgendaEditor(true);
+  };
+
+  const handleEditAgenda = (agendaId: string) => {
+    setEditingAgendaId(agendaId);
+    setShowAgendaEditor(true);
+  };
+
+  const handleViewAgenda = (agendaId: string) => {
+    setViewingAgendaId(agendaId);
+  };
+
+  const handleCloseAgendaEditor = () => {
+    setShowAgendaEditor(false);
+    setEditingAgendaId(null);
+  };
+
+  const handleAgendaSaved = () => {
+    setShowAgendaEditor(false);
+    setEditingAgendaId(null);
+  };
+
   const renderPage = () => {
+    if (currentPage === 'events' && viewingAgendaId) {
+      return (
+        <ClosedAgendaViewer
+          agendaId={viewingAgendaId}
+          onBack={() => setViewingAgendaId(null)}
+        />
+      );
+    }
+
     switch (currentPage) {
       case 'parents':
         return <ParentsManagement />;
       case 'events':
-        return <div className="p-8 text-center text-gray-600">Agenda's beheren komt binnenkort</div>;
+        return teacherId ? (
+          <AgendaManager
+            teacherId={teacherId}
+            onEditAgenda={handleEditAgenda}
+            onViewAgenda={handleViewAgenda}
+            onCreateNew={handleCreateAgenda}
+          />
+        ) : (
+          <div className="p-8 text-center text-gray-600">Loading...</div>
+        );
       case 'bookings':
         return <MyBookings />;
       case 'availability':
@@ -141,6 +214,15 @@ export const TeacherDashboard = () => {
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {showAgendaEditor && teacherId && (
+        <AgendaEditorModal
+          teacherId={teacherId}
+          agendaId={editingAgendaId}
+          onClose={handleCloseAgendaEditor}
+          onSave={handleAgendaSaved}
         />
       )}
     </div>

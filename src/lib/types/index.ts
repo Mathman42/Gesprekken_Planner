@@ -23,6 +23,10 @@ export type Setting = Database['public']['Tables']['settings']['Row'];
 export type Teacher = Database['public']['Tables']['teachers']['Row'];
 export type TeacherInsert = Database['public']['Tables']['teachers']['Insert'];
 
+export type TeacherAgenda = Database['public']['Tables']['teacher_agendas']['Row'];
+export type TeacherAgendaInsert = Database['public']['Tables']['teacher_agendas']['Insert'];
+export type TeacherAgendaUpdate = Database['public']['Tables']['teacher_agendas']['Update'];
+
 export type TeacherAvailability = Database['public']['Tables']['teacher_availability']['Row'];
 export type TeacherAvailabilityInsert = Database['public']['Tables']['teacher_availability']['Insert'];
 export type TeacherAvailabilityUpdate = Database['public']['Tables']['teacher_availability']['Update'];
@@ -51,7 +55,14 @@ export interface TeacherTimeSlotWithBooking extends TeacherTimeSlot {
   booking?: TeacherBooking | null;
 }
 
+export interface TeacherAgendaWithStats extends TeacherAgenda {
+  total_slots: number;
+  booked_slots: number;
+  available_slots: number;
+}
+
 export type SlotStatus = 'available' | 'blocked' | 'booked' | 'selected';
+export type AgendaStatus = 'draft' | 'active' | 'closed' | 'archived';
 
 export interface EventWithStats extends Event {
   total_slots: number;

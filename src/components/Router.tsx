@@ -15,6 +15,7 @@ import { InitAdmin } from './setup/InitAdmin';
 
 export type Page =
   | 'home'
+  | 'staff-login'
   | 'admin-login'
   | 'teacher-login'
   | 'coordinator-login'
@@ -32,25 +33,52 @@ export const Router = () => {
   const { isAuthenticated, role, login } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [verifyToken, setVerifyToken] = useState<string>('');
-  const [passwordChangeData, setPasswordChangeData] = useState<{ email: string; userType: 'parent' | 'teacher' } | null>(null);
+  const [passwordChangeData, setPasswordChangeData] = useState<{
+    email: string;
+    userType: 'parent' | 'teacher';
+  } | null>(null);
+
+  const getPathForPage = (page: Page, token?: string) => {
+    if (token) {
+      return `/?token=${token}`;
+    }
+
+    switch (page) {
+      case 'home':
+        return '/';
+      case 'staff-login':
+        return '/staff-login';
+      case 'parent-login':
+        return '/plan';
+      case 'teacher-login':
+        return '/teacher-login';
+      case 'coordinator-login':
+        return '/coordinator-login';
+      case 'admin-login':
+        return '/admin-login';
+      case 'admin-registration':
+        return '/setup';
+      case 'init-admin':
+        return '/init-admin';
+      default:
+        return '/';
+    }
+  };
 
   useEffect(() => {
-    // Check URL for setup route
     const path = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
     if (path === '/setup' || path === '/admin/setup') {
       setCurrentPage('admin-registration');
       return;
     }
 
-    // Check URL for init-admin route
     if (path === '/init-admin') {
       setCurrentPage('init-admin');
       return;
     }
-
-    // Check URL for token parameter BEFORE checking auth (allow verification page)
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
 
     if (token && !isAuthenticated) {
       setVerifyToken(token);
@@ -58,7 +86,6 @@ export const Router = () => {
       return;
     }
 
-    // Route based on authentication state
     if (isAuthenticated) {
       if (role === 'admin') {
         setCurrentPage('admin-dashboard');
@@ -72,22 +99,45 @@ export const Router = () => {
       return;
     }
 
-    // Default to home if not authenticated
+    if (path === '/staff-login') {
+      setCurrentPage('staff-login');
+      return;
+    }
+
+    if (path === '/plan' || path === '/parent-login') {
+      setCurrentPage('parent-login');
+      return;
+    }
+
+    if (path === '/teacher-login') {
+      setCurrentPage('teacher-login');
+      return;
+    }
+
+    if (path === '/coordinator-login') {
+      setCurrentPage('coordinator-login');
+      return;
+    }
+
+    if (path === '/admin-login') {
+      setCurrentPage('admin-login');
+      return;
+    }
+
     setCurrentPage('home');
   }, [isAuthenticated, role]);
 
-  // Update URL without page reload
   const navigate = (page: Page, token?: string) => {
     setCurrentPage(page);
+
     if (token) {
       setVerifyToken(token);
-      window.history.pushState({}, '', `?token=${token}`);
-    } else {
-      window.history.pushState({}, '', '/');
     }
+
+    const nextPath = getPathForPage(page, token);
+    window.history.pushState({}, '', nextPath);
   };
 
-  // Home page - choice between admin and parent
   if (currentPage === 'home') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
@@ -98,44 +148,28 @@ export const Router = () => {
                 <span className="text-white text-5xl font-bold">KC</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Ouderavond Boeking
-            </h1>
-            <p className="text-gray-600 mb-8">Kempenhorst College</p>
 
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Gesprekkenplanner
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Plan eenvoudig een gesprek met school.
+            </p>
+
+            <div className="max-w-md mx-auto space-y-4">
               <button
                 onClick={() => navigate('parent-login')}
-                className="bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
               >
-                <div className="text-lg mb-1">Ouder/Verzorger</div>
-                <div className="text-sm opacity-90">Gesprek inplannen</div>
+                <div className="text-lg mb-1">Plan een gesprek</div>
+                <div className="text-sm opacity-90">Voor ouders/verzorgers</div>
               </button>
 
               <button
-                onClick={() => navigate('teacher-login')}
-                className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+                onClick={() => navigate('staff-login')}
+                className="text-blue-700 hover:text-blue-900 font-medium underline underline-offset-4"
               >
-                <div className="text-lg mb-1">Docent</div>
-                <div className="text-sm opacity-90">Beschikbaarheid</div>
-              </button>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <button
-                onClick={() => navigate('coordinator-login')}
-                className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-4 px-6 rounded-lg transition-colors"
-              >
-                <div className="text-lg mb-1">Coordinator</div>
-                <div className="text-sm opacity-90">Gesprekken bekijken</div>
-              </button>
-
-              <button
-                onClick={() => navigate('admin-login')}
-                className="bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
-              >
-                <div className="text-lg mb-1">Admin</div>
-                <div className="text-sm opacity-90">Beheer</div>
+                Personeelslogin
               </button>
             </div>
 
@@ -149,6 +183,56 @@ export const Router = () => {
                 </a>
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentPage === 'staff-login') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 px-4">
+        <div className="max-w-2xl w-full">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              Personeelslogin
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Kies uw rol om verder te gaan.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <button
+                onClick={() => navigate('teacher-login')}
+                className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+              >
+                <div className="text-lg mb-1">Docent</div>
+                <div className="text-sm opacity-90">Beschikbaarheid beheren</div>
+              </button>
+
+              <button
+                onClick={() => navigate('coordinator-login')}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+              >
+                <div className="text-lg mb-1">Coördinator</div>
+                <div className="text-sm opacity-90">Gesprekken bekijken</div>
+              </button>
+
+              <button
+                onClick={() => navigate('admin-login')}
+                className="bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
+              >
+                <div className="text-lg mb-1">Admin</div>
+                <div className="text-sm opacity-90">Beheer</div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => navigate('home')}
+              className="mt-8 text-blue-700 hover:text-blue-900 font-medium underline underline-offset-4"
+            >
+              Terug naar ouderingang
+            </button>
           </div>
         </div>
       </div>
@@ -244,7 +328,6 @@ export const Router = () => {
     return <CoordinatorDashboard />;
   }
 
-  // Default fallback
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">

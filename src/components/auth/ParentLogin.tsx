@@ -10,10 +10,10 @@ interface ParentLoginProps {
   onLoginSuccess: (email: string, requirePasswordChange: boolean) => void;
 }
 
-type LoginMethod = 'choose' | 'password' | 'magic-link';
+type LoginMethod = 'password' | 'magic-link';
 
 export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('choose');
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('magic-link');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -73,7 +73,7 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
       }
 
       if (!parent.password_hash) {
-        setError('Deze account heeft geen wachtwoord. Gebruik de magic link optie.');
+        setError('Voor dit account is geen wachtwoord ingesteld. Gebruik de e-mail link.');
         setLoading(false);
         return;
       }
@@ -104,7 +104,7 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
     setLoading(true);
 
     if (!magicLinkEnabled) {
-      setError('Magic link inloggen is momenteel uitgeschakeld. Gebruik wachtwoord login.');
+      setError('Inloggen met e-mail link is momenteel uitgeschakeld. Gebruik wachtwoord login.');
       setLoading(false);
       return;
     }
@@ -195,72 +195,14 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
             <button
               onClick={() => {
                 setMagicLinkSent(false);
-                setLoginMethod('choose');
+                setError('');
+                setEmail('');
               }}
               className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2 mx-auto"
             >
               <ArrowLeft size={20} />
               Terug
             </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loginMethod === 'choose') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg flex items-center justify-center">
-                <span className="text-white text-4xl font-bold">KC</span>
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Ouder Inloggen</h1>
-            <p className="text-gray-600 mt-2">Kempenhorst College</p>
-          </div>
-
-          <div className="space-y-4">
-            <button
-              onClick={() => setLoginMethod('password')}
-              className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-4 rounded-lg transition-colors flex items-center justify-center gap-3"
-            >
-              <Lock size={20} />
-              Inloggen met wachtwoord
-            </button>
-
-            {false && (
-              <button
-                onClick={() => setLoginMethod('magic-link')}
-                className="w-full bg-white text-blue-900 font-medium py-4 px-4 rounded-lg flex items-center justify-center gap-3 border-2 border-blue-900 hover:bg-blue-50 transition-colors"
-              >
-                <Mail size={20} />
-                Inloggen met e-mail link
-              </button>
-            )}
-          </div>
-
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="mt-6 w-full text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2"
-            >
-              <ArrowLeft size={20} />
-              Terug
-            </button>
-          )}
-
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-            <p>Kempenhorst College</p>
-            <p>Eikenbussel 1, 5689 AA Oirschot</p>
-            <p>T: +31 (0)499 58 21 60</p>
-            <p className="mt-2">
-              <a href="https://kempenhorst.nl" className="text-blue-600 hover:underline">
-                kempenhorst.nl
-              </a>
-            </p>
           </div>
         </div>
       </div>
@@ -277,8 +219,8 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
                 <span className="text-white text-4xl font-bold">KC</span>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Inloggen met wachtwoord</h1>
-            <p className="text-gray-600 mt-2">Kempenhorst College</p>
+            <h1 className="text-2xl font-bold text-gray-900">Ouderlogin</h1>
+            <p className="text-gray-600 mt-2">Inloggen met wachtwoord</p>
           </div>
 
           <form onSubmit={handlePasswordLogin} className="space-y-6">
@@ -329,23 +271,25 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
           </form>
 
           <button
-            onClick={() => setLoginMethod('choose')}
-            className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2"
+            onClick={() => {
+              setError('');
+              setPassword('');
+              setLoginMethod('magic-link');
+            }}
+            className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium"
           >
-            <ArrowLeft size={20} />
-            Andere inlogmethode
+            Liever inloggen met e-mail link
           </button>
 
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-            <p>Kempenhorst College</p>
-            <p>Eikenbussel 1, 5689 AA Oirschot</p>
-            <p>T: +31 (0)499 58 21 60</p>
-            <p className="mt-2">
-              <a href="https://kempenhorst.nl" className="text-blue-600 hover:underline">
-                kempenhorst.nl
-              </a>
-            </p>
-          </div>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={20} />
+              Terug
+            </button>
+          )}
         </div>
       </div>
     );
@@ -360,8 +304,8 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
               <span className="text-white text-4xl font-bold">KC</span>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Inloggen met e-mail link</h1>
-          <p className="text-gray-600 mt-2">Kempenhorst College</p>
+          <h1 className="text-2xl font-bold text-gray-900">Plan een gesprek</h1>
+          <p className="text-gray-600 mt-2">Log in met uw e-mailadres</p>
         </div>
 
         <form onSubmit={handleMagicLinkRequest} className="space-y-6">
@@ -379,7 +323,7 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
               required
             />
             <p className="mt-2 text-sm text-gray-500">
-              U ontvangt een inloglink per e-mail
+              U ontvangt een inloglink per e-mail.
             </p>
           </div>
 
@@ -400,23 +344,25 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
         </form>
 
         <button
-          onClick={() => setLoginMethod('choose')}
-          className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2"
+          onClick={() => {
+            setError('');
+            setPassword('');
+            setLoginMethod('password');
+          }}
+          className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium"
         >
-          <ArrowLeft size={20} />
-          Andere inlogmethode
+          Inloggen met wachtwoord
         </button>
 
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>Kempenhorst College</p>
-          <p>Eikenbussel 1, 5689 AA Oirschot</p>
-          <p>T: +31 (0)499 58 21 60</p>
-          <p className="mt-2">
-            <a href="https://kempenhorst.nl" className="text-blue-600 hover:underline">
-              kempenhorst.nl
-            </a>
-          </p>
-        </div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="mt-4 w-full text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-2"
+          >
+            <ArrowLeft size={20} />
+            Terug
+          </button>
+        )}
       </div>
     </div>
   );

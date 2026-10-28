@@ -97,7 +97,7 @@ export const ParentBooking = () => {
     setSelectedDate(date);
     setError('');
 
-    const result = await getTeacherTimeSlotsForDate(selectedTeacher.id, date);
+    const result = await getTeacherTimeSlotsForDate(selectedTeacher.id, date, true);
     if (result.success && result.slots) {
       setSlots(result.slots);
       setViewStep('select-slot');

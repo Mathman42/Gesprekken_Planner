@@ -24,7 +24,7 @@ export default function TimeSlotManager({ teacherId, date, onBack }: TimeSlotMan
     setLoading(true);
     setError(null);
 
-    const result = await getTeacherTimeSlotsForDate(teacherId, date);
+    const result = await getTeacherTimeSlotsForDate(teacherId, date, true);
 
     if (result.success && result.slots) {
       setSlots(result.slots);

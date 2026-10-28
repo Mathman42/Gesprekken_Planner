@@ -209,7 +209,7 @@ export const ParentLogin = ({ onBack, onLoginSuccess }: ParentLoginProps) => {
     );
   }
 
-  if (loginMethod === 'password') {
+  if (loginMethod === 'password' || !magicLinkEnabled) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">

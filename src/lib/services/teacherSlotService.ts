@@ -206,12 +206,17 @@ export async function getParentBooking(
         teacher:teachers(
           name,
           email
+        ),
+        agenda:teacher_agendas(
+          status
         )
       `)
       .eq('parent_email', parentEmail)
       .maybeSingle();
 
     if (error) throw error;
+
+    if (data?.agenda?.status === 'archived') return { success: true, booking: undefined };
 
     return { success: true, booking: data || undefined };
   } catch (error) {

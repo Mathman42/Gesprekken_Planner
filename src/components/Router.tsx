@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/contexts/AuthContext';
 import { AdminLogin } from './auth/AdminLogin';
-import { AdminRegistration } from './auth/AdminRegistration';
 import { TeacherLogin } from './auth/TeacherLogin';
 import { ParentLogin } from './auth/ParentLogin';
 import CoordinatorLogin from './auth/CoordinatorLogin';
@@ -19,7 +18,6 @@ export type Page =
   | 'admin-login'
   | 'teacher-login'
   | 'coordinator-login'
-  | 'admin-registration'
   | 'parent-login'
   | 'verify'
   | 'password-change'
@@ -56,8 +54,6 @@ export const Router = () => {
         return '/coordinator-login';
       case 'admin-login':
         return '/admin-login';
-      case 'admin-registration':
-        return '/setup';
       case 'init-admin':
         return '/init-admin';
       default:
@@ -69,11 +65,6 @@ export const Router = () => {
     const path = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-
-    if (path === '/setup' || path === '/admin/setup') {
-      setCurrentPage('admin-registration');
-      return;
-    }
 
     if (path === '/init-admin') {
       setCurrentPage('init-admin');
@@ -256,10 +247,6 @@ export const Router = () => {
 
   if (currentPage === 'coordinator-login') {
     return <CoordinatorLogin />;
-  }
-
-  if (currentPage === 'admin-registration') {
-    return <AdminRegistration />;
   }
 
   if (currentPage === 'init-admin') {

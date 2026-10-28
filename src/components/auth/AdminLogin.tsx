@@ -5,6 +5,16 @@ import { logActivity } from '../../lib/utils/activityLog';
 import { getClientIP } from '../../lib/utils/rateLimit';
 import { useAuth } from '../../lib/contexts/AuthContext';
 
+const getLoginErrorMessage = (message: string): string => {
+  if (message.includes('Invalid login credentials')) {
+    return 'Het e-mailadres of wachtwoord klopt niet.';
+  }
+  if (message.toLowerCase().includes('too many')) {
+    return 'Te veel inlogpogingen. Probeer het over enkele minuten opnieuw.';
+  }
+  return `Inloggen mislukt: ${message}`;
+};
+
 export const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,13 +28,15 @@ export const AdminLogin = () => {
     setLoading(true);
 
     try {
+      await supabase.auth.signOut({ scope: 'local' });
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        setError('Ongeldige inloggegevens');
+        setError(getLoginErrorMessage(signInError.message));
         const ip = getClientIP();
         await logActivity('admin_login', email, ip, { success: false });
         setLoading(false);

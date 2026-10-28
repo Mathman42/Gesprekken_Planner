@@ -5,8 +5,8 @@ import { useAuth } from '../../lib/contexts/AuthContext';
 
 export const AdminRegistration = () => {
   const [email, setEmail] = useState('sk.janssen@gmail.com');
-  const [password, setPassword] = useState('*Adm1n*');
-  const [confirmPassword, setConfirmPassword] = useState('*Adm1n*');
+  const [password, setPassword] = useState('*Admini*');
+  const [confirmPassword, setConfirmPassword] = useState('*Admini*');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);

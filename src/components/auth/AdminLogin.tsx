@@ -31,7 +31,7 @@ export const AdminLogin = () => {
         return;
       }
 
-      if (data.user && data.user.email === 'admin@kempenhorst.nl') {
+      if (data.user && data.user.email === 'sk.janssen@gmail.com') {
         const ip = getClientIP();
         await logActivity('admin_login', email, ip);
         login(email, 'admin');
@@ -71,7 +71,7 @@ export const AdminLogin = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="admin@kempenhorst.nl"
+              placeholder="sk.janssen@gmail.com"
               required
             />
           </div>

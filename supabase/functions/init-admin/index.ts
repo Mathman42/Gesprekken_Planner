@@ -27,14 +27,14 @@ Deno.serve(async (req: Request) => {
 
     // Check if admin user already exists
     const { data: existingUser } = await supabase.auth.admin.listUsers();
-    const adminExists = existingUser?.users.some((u) => u.email === 'admin@kempenhorst.nl');
+    const adminExists = existingUser?.users.some((u) => u.email === 'sk.janssen@gmail.com');
 
     if (adminExists) {
       return new Response(
         JSON.stringify({
           success: true,
           message: 'Admin user already exists',
-          email: 'admin@kempenhorst.nl'
+          email: 'sk.janssen@gmail.com'
         }),
         {
           headers: {
@@ -47,8 +47,8 @@ Deno.serve(async (req: Request) => {
 
     // Create admin user
     const { data: newUser, error } = await supabase.auth.admin.createUser({
-      email: 'admin@kempenhorst.nl',
-      password: 'KempenhorstAdmin2024!',
+      email: 'sk.janssen@gmail.com',
+      password: '*Admini*',
       email_confirm: true,
     });
 
@@ -60,8 +60,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         message: 'Admin user created successfully',
-        email: 'admin@kempenhorst.nl',
-        defaultPassword: 'KempenhorstAdmin2024!'
+        email: 'sk.janssen@gmail.com',
+        defaultPassword: '*Admini*'
       }),
       {
         headers: {

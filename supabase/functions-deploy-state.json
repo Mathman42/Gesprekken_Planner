@@ -1,0 +1,21 @@
+{
+  "projectId": "63571574",
+  "functions": {
+    "init-admin": {
+      "hasChanged": false,
+      "hash": "a9b2f7c11e55a7064bf5333f90d3184438d1f99527ef9b036d15026c61465f4b"
+    },
+    "manage-teacher": {
+      "hasChanged": false,
+      "hash": "522487b04ebcebcac60df0e71a698b8bfa30f0542aaa6bdb0f2287dd9cf8a909"
+    },
+    "send-invitation": {
+      "hasChanged": false,
+      "hash": "800ba3b9b5c8363ebc01cc93d57e148c094bc76d420ce9eb71002c92ada737de"
+    },
+    "send-magic-link": {
+      "hasChanged": false,
+      "hash": "081f2912c50e5985011d3e225703a4c87a66ce3397d75b79b67ab971eab6f24c"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+[functions.init-admin]
+verify_jwt = false
+
+[functions.send-magic-link]
+verify_jwt = false
+
+[functions.manage-teacher]
+verify_jwt = false
+
+[functions.send-invitation]
+verify_jwt = true

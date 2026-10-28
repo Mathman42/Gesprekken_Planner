@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Unauthorized");
     }
 
-    if (user.email !== "admin@kempenhorst.nl") {
+    if (user.email !== "sk.janssen@gmail.com") {
       throw new Error("Only admin can manage teachers");
     }
 

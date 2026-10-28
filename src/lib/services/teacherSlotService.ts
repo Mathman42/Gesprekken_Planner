@@ -293,7 +293,8 @@ export async function deleteSlotsForAvailability(
 }
 
 export async function getTeacherBookings(
-  teacherId: string
+  teacherId: string,
+  agendaId: string
 ): Promise<{ success: boolean; error?: string; bookings?: any[] }> {
   try {
     const { data, error } = await supabase
@@ -307,6 +308,7 @@ export async function getTeacherBookings(
         )
       `)
       .eq('teacher_id', teacherId)
+      .eq('agenda_id', agendaId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;

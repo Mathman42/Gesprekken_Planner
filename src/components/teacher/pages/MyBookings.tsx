@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Mail, AlertCircle, Plus, Edit2, Trash2, CheckCircle, Download } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { getTeacherBookings } from '../../../lib/services/teacherSlotService';
+import { agendaService } from '../../../lib/services/agendaService';
+import type { TeacherAgenda } from '../../../lib/types';
 import { CreateBookingModal } from '../modals/CreateBookingModal';
 import { EditBookingModal } from '../modals/EditBookingModal';
 import { DeleteConfirmModal } from '../modals/DeleteConfirmModal';
@@ -22,7 +24,15 @@ interface GroupedBookings {
   [date: string]: BookingWithSlot[];
 }
 
+const pickDefaultAgenda = (agendas: TeacherAgenda[]) => {
+  const today = new Date().toISOString().split('T')[0];
+  const sorted = [...agendas].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  return sorted.find((a) => a.end_date >= today && a.status !== 'archived') ?? sorted[sorted.length - 1];
+};
+
 export const MyBookings = () => {
+  const [agendas, setAgendas] = useState<TeacherAgenda[]>([]);
+  const [selectedAgendaId, setSelectedAgendaId] = useState('');
   const [bookings, setBookings] = useState<BookingWithSlot[]>([]);
   const [groupedBookings, setGroupedBookings] = useState<GroupedBookings>({});
   const [loading, setLoading] = useState(true);
@@ -37,7 +47,7 @@ export const MyBookings = () => {
     loadBookings();
   }, []);
 
-  const loadBookings = async () => {
+  const loadBookings = async (agendaId?: string) => {
     setLoading(true);
     setError('');
 
@@ -63,7 +73,18 @@ export const MyBookings = () => {
 
       setTeacherId(teacherData.id);
 
-      const result = await getTeacherBookings(teacherData.id);
+      const teacherAgendas = await agendaService.getTeacherAgendas(teacherData.id);
+      setAgendas(teacherAgendas);
+
+      const targetAgendaId = agendaId || selectedAgendaId || pickDefaultAgenda(teacherAgendas)?.id;
+      if (!targetAgendaId) {
+        setBookings([]);
+        groupBookingsByDate([]);
+        return;
+      }
+      setSelectedAgendaId(targetAgendaId);
+
+      const result = await getTeacherBookings(teacherData.id, targetAgendaId);
 
       if (result.success && result.bookings) {
         const validBookings = result.bookings.filter(
@@ -178,22 +199,6 @@ export const MyBookings = () => {
     );
   }
 
-  if (bookings.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12">
-        <div className="text-center">
-          <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Geen gesprekken gepland
-          </h2>
-          <p className="text-gray-600">
-            Er zijn nog geen ouderavonden ingepland
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {successMessage && (
@@ -210,6 +215,20 @@ export const MyBookings = () => {
             <p className="text-gray-600">
               Overzicht van alle ingeplande ouderavonden
             </p>
+            <label className="mt-4 flex items-center gap-3 text-sm font-medium text-gray-700">
+              Agenda
+              <select
+                value={selectedAgendaId}
+                onChange={(e) => loadBookings(e.target.value)}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-900/20"
+              >
+                {agendas.map((agenda) => (
+                  <option key={agenda.id} value={agenda.id}>
+                    {agenda.title} ({agenda.start_date} t/m {agenda.end_date}){agenda.status === 'archived' ? ' - gearchiveerd' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           <div className="flex gap-2">
             <button

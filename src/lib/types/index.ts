@@ -79,5 +79,4 @@ export interface AuthState {
   isAuthenticated: boolean;
   role: UserRole | null;
   email: string | null;
-  magicLinkToken: string | null;
 }

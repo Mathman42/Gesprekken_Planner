@@ -4,7 +4,6 @@ import { AdminLogin } from './auth/AdminLogin';
 import { TeacherLogin } from './auth/TeacherLogin';
 import { ParentLogin } from './auth/ParentLogin';
 import CoordinatorLogin from './auth/CoordinatorLogin';
-import { MagicLinkVerify } from './auth/MagicLinkVerify';
 import { PasswordChange } from './auth/PasswordChange';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { TeacherDashboard } from './teacher/TeacherDashboard';
@@ -13,13 +12,11 @@ import CoordinatorDashboard from './coordinator/CoordinatorDashboard';
 import { InitAdmin } from './setup/InitAdmin';
 
 export type Page =
-  | 'home'
   | 'staff-login'
   | 'admin-login'
   | 'teacher-login'
   | 'coordinator-login'
   | 'parent-login'
-  | 'verify'
   | 'password-change'
   | 'admin-dashboard'
   | 'teacher-dashboard'
@@ -29,25 +26,18 @@ export type Page =
 
 export const Router = () => {
   const { isAuthenticated, role, login } = useAuth();
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [verifyToken, setVerifyToken] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<Page>('parent-login');
   const [passwordChangeData, setPasswordChangeData] = useState<{
     email: string;
     userType: 'parent' | 'teacher';
   } | null>(null);
 
-  const getPathForPage = (page: Page, token?: string) => {
-    if (token) {
-      return `/?token=${token}`;
-    }
-
+  const getPathForPage = (page: Page) => {
     switch (page) {
-      case 'home':
+      case 'parent-login':
         return '/';
       case 'staff-login':
         return '/staff-login';
-      case 'parent-login':
-        return '/plan';
       case 'teacher-login':
         return '/teacher-login';
       case 'coordinator-login':
@@ -63,17 +53,9 @@ export const Router = () => {
 
   useEffect(() => {
     const path = window.location.pathname;
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
 
     if (path === '/init-admin') {
       setCurrentPage('init-admin');
-      return;
-    }
-
-    if (token && !isAuthenticated) {
-      setVerifyToken(token);
-      setCurrentPage('verify');
       return;
     }
 
@@ -95,11 +77,6 @@ export const Router = () => {
       return;
     }
 
-    if (path === '/plan' || path === '/parent-login') {
-      setCurrentPage('parent-login');
-      return;
-    }
-
     if (path === '/teacher-login') {
       setCurrentPage('teacher-login');
       return;
@@ -115,70 +92,13 @@ export const Router = () => {
       return;
     }
 
-    setCurrentPage('home');
+    setCurrentPage('parent-login');
   }, [isAuthenticated, role]);
 
-  const navigate = (page: Page, token?: string) => {
+  const navigate = (page: Page) => {
     setCurrentPage(page);
-
-    if (token) {
-      setVerifyToken(token);
-    }
-
-    const nextPath = getPathForPage(page, token);
-    window.history.pushState({}, '', nextPath);
+    window.history.pushState({}, '', getPathForPage(page));
   };
-
-  if (currentPage === 'home') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-        <div className="max-w-2xl w-full">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-40 h-40 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg flex items-center justify-center">
-                <span className="text-white text-5xl font-bold">KC</span>
-              </div>
-            </div>
-
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Gesprekkenplanner
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Plan eenvoudig een gesprek met school.
-            </p>
-
-            <div className="max-w-md mx-auto space-y-4">
-              <button
-                onClick={() => navigate('parent-login')}
-                className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-6 rounded-lg transition-colors"
-              >
-                <div className="text-lg mb-1">Plan een gesprek</div>
-                <div className="text-sm opacity-90">Voor ouders/verzorgers</div>
-              </button>
-
-              <button
-                onClick={() => navigate('staff-login')}
-                className="text-blue-700 hover:text-blue-900 font-medium underline underline-offset-4"
-              >
-                Personeelslogin
-              </button>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-600">
-              <p>Kempenhorst College</p>
-              <p>Eikenbussel 1, 5689 AA Oirschot</p>
-              <p>T: +31 (0)499 58 21 60</p>
-              <p className="mt-2">
-                <a href="https://kempenhorst.nl" className="text-blue-600 hover:underline">
-                  kempenhorst.nl
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (currentPage === 'staff-login') {
     return (
@@ -219,7 +139,7 @@ export const Router = () => {
             </div>
 
             <button
-              onClick={() => navigate('home')}
+              onClick={() => navigate('parent-login')}
               className="mt-8 text-blue-700 hover:text-blue-900 font-medium underline underline-offset-4"
             >
               Terug naar ouderingang
@@ -256,7 +176,7 @@ export const Router = () => {
   if (currentPage === 'parent-login') {
     return (
       <ParentLogin
-        onBack={() => navigate('home')}
+        onStaffLogin={() => navigate('staff-login')}
         onLoginSuccess={(email, requirePasswordChange) => {
           if (requirePasswordChange) {
             setPasswordChangeData({ email, userType: 'parent' });
@@ -270,10 +190,6 @@ export const Router = () => {
         }}
       />
     );
-  }
-
-  if (currentPage === 'verify') {
-    return <MagicLinkVerify token={verifyToken} />;
   }
 
   if (currentPage === 'password-change' && passwordChangeData) {

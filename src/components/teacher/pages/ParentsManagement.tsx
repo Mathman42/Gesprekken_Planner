@@ -26,7 +26,6 @@ export const ParentsManagement = () => {
     email: '',
     name: '',
     password: '',
-    hasPassword: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -202,11 +201,7 @@ Met vriendelijke groet,
     preview = preview.replace(/\[naam-docent\]/g, teacherName);
     preview = preview.replace(/\[login-link\]/g, loginUrl);
 
-    if (parent.password_hash) {
-      preview = preview.replace(/\[wachtwoord\]/g, '[persoonlijk wachtwoord]');
-    } else {
-      preview = preview.replace(/\[wachtwoord\]/g, '(gebruik magic link om in te loggen)');
-    }
+    preview = preview.replace(/\[wachtwoord\]/g, '[persoonlijk wachtwoord]');
 
     return preview;
   };
@@ -217,7 +212,7 @@ Met vriendelijke groet,
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData({ ...formData, password, hasPassword: true });
+    setFormData({ ...formData, password });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -233,8 +228,16 @@ Met vriendelijke groet,
         return;
       }
 
+      const email = formData.email.trim().toLowerCase();
+
+      if (!editingParent && !formData.password) {
+        setError('Vul een wachtwoord in voor de ouder');
+        setSubmitting(false);
+        return;
+      }
+
       let hashedPassword = null;
-      if (formData.hasPassword && formData.password) {
+      if (formData.password) {
         if (formData.password.length < 8) {
           setError('Wachtwoord moet minimaal 8 karakters zijn');
           setSubmitting(false);
@@ -245,7 +248,7 @@ Met vriendelijke groet,
 
       if (editingParent) {
         const updateData: any = {
-          email: formData.email,
+          email,
           name: formData.name,
         };
 
@@ -265,7 +268,7 @@ Met vriendelijke groet,
         const { data: existingParent } = await supabase
           .from('parents')
           .select('id')
-          .eq('email', formData.email)
+          .eq('email', email)
           .maybeSingle();
 
         let parentId: string;
@@ -286,7 +289,7 @@ Met vriendelijke groet,
           const { data: newParent, error: insertError } = await supabase
             .from('parents')
             .insert({
-              email: formData.email,
+              email,
               name: formData.name,
               password_hash: hashedPassword,
               password_must_change: hashedPassword ? requirePasswordChange : false,
@@ -313,7 +316,7 @@ Met vriendelijke groet,
         setSuccess('Ouder succesvol toegevoegd');
       }
 
-      setFormData({ email: '', name: '', password: '', hasPassword: false });
+      setFormData({ email: '', name: '', password: '' });
       setShowForm(false);
       setEditingParent(null);
       if (teacherId) loadParents(teacherId);
@@ -331,7 +334,6 @@ Met vriendelijke groet,
       email: parent.email,
       name: parent.name,
       password: '',
-      hasPassword: !!parent.password_hash,
     });
     setShowForm(true);
   };
@@ -365,7 +367,7 @@ Met vriendelijke groet,
   const handleCancel = () => {
     setShowForm(false);
     setEditingParent(null);
-    setFormData({ email: '', name: '', password: '', hasPassword: false });
+    setFormData({ email: '', name: '', password: '' });
     setError('');
   };
 
@@ -547,23 +549,9 @@ Met vriendelijke groet,
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="hasPassword"
-                checked={formData.hasPassword}
-                onChange={(e) => setFormData({ ...formData, hasPassword: e.target.checked, password: '' })}
-                className="w-4 h-4 text-blue-900 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="hasPassword" className="text-sm text-gray-700">
-                Wachtwoord instellen (anders alleen magic link)
-              </label>
-            </div>
-
-            {formData.hasPassword && (
-              <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tijdelijk wachtwoord
+                  {editingParent ? 'Nieuw wachtwoord (optioneel)' : 'Wachtwoord'}
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -572,8 +560,8 @@ Met vriendelijke groet,
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                      placeholder="Minimaal 8 karakters"
-                      required={formData.hasPassword}
+                      placeholder={editingParent ? 'Laat leeg om ongewijzigd te laten' : 'Minimaal 8 karakters'}
+                      required={!editingParent}
                     />
                     <button
                       type="button"
@@ -591,8 +579,7 @@ Met vriendelijke groet,
                     Genereer
                   </button>
                 </div>
-              </div>
-            )}
+            </div>
 
             <div className="flex gap-3 pt-4">
               <button
@@ -660,7 +647,7 @@ Met vriendelijke groet,
                     <div className="grid grid-cols-2 gap-2">
                       <div><code className="bg-gray-100 px-2 py-1 rounded">[naam-ouder]</code> - Naam van de ouder</div>
                       <div><code className="bg-gray-100 px-2 py-1 rounded">[email-ouder]</code> - Email adres</div>
-                      <div><code className="bg-gray-100 px-2 py-1 rounded">[wachtwoord]</code> - Wachtwoord (indien van toepassing)</div>
+                      <div><code className="bg-gray-100 px-2 py-1 rounded">[wachtwoord]</code> - Persoonlijk wachtwoord</div>
                       <div><code className="bg-gray-100 px-2 py-1 rounded">[login-link]</code> - Link naar login pagina</div>
                       <div><code className="bg-gray-100 px-2 py-1 rounded">[naam-docent]</code> - Uw naam</div>
                     </div>
@@ -755,7 +742,7 @@ Met vriendelijke groet,
                     E-mail
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Login methode
+                    Wachtwoord
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Toegevoegd
@@ -785,11 +772,11 @@ Met vriendelijke groet,
                     <td className="px-6 py-4 text-sm">
                       {parent.password_hash ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Wachtwoord + Magic Link
+                          Wachtwoord ingesteld
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          Alleen Magic Link
+                          Geen wachtwoord
                         </span>
                       )}
                     </td>

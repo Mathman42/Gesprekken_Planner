@@ -13,10 +13,10 @@ export const getAuthState = (): AuthState => {
     try {
       return JSON.parse(stored);
     } catch {
-      return { isAuthenticated: false, role: null, email: null, magicLinkToken: null };
+      return { isAuthenticated: false, role: null, email: null };
     }
   }
-  return { isAuthenticated: false, role: null, email: null, magicLinkToken: null };
+  return { isAuthenticated: false, role: null, email: null };
 };
 
 export const clearAuthState = (): void => {
@@ -60,36 +60,3 @@ export const verifyTeacherPassword = async (email: string, password: string): Pr
   return true;
 };
 
-export const generateMagicToken = (): string => {
-  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-};
-
-export const verifyMagicLink = async (token: string): Promise<{ valid: boolean; email?: string }> => {
-  const { data, error } = await supabase
-    .from('magic_links')
-    .select('*')
-    .eq('token', token)
-    .is('used_at', null)
-    .maybeSingle();
-
-  if (error || !data) {
-    return { valid: false };
-  }
-
-  const now = new Date();
-  const expiresAt = new Date(data.expires_at);
-
-  if (now > expiresAt) {
-    return { valid: false };
-  }
-
-  // Mark the link as used
-  await supabase
-    .from('magic_links')
-    .update({ used_at: now.toISOString() })
-    .eq('token', token);
-
-  return { valid: true, email: data.email };
-};

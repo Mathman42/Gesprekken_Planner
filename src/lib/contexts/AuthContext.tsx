@@ -4,7 +4,7 @@ import { getAuthState, saveAuthState, clearAuthState } from '../utils/auth';
 import { supabase } from '../supabase';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, role: 'admin' | 'parent' | 'teacher', magicLinkToken?: string) => void;
+  login: (email: string, role: 'admin' | 'parent' | 'teacher') => void;
   logout: () => void;
 }
 
@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isAuthenticated: true,
             role: stored.role,
             email: stored.email,
-            magicLinkToken: stored.magicLinkToken,
           });
         }
       } else {
@@ -37,7 +36,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isAuthenticated: false,
             role: null,
             email: null,
-            magicLinkToken: null,
           });
           clearAuthState();
         } else if (!stored.isAuthenticated) {
@@ -61,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isAuthenticated: true,
           role: stored.role,
           email: stored.email,
-          magicLinkToken: stored.magicLinkToken,
         });
       }
     } else {
@@ -71,12 +68,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   };
 
-  const login = (email: string, role: 'admin' | 'parent' | 'teacher', magicLinkToken?: string) => {
+  const login = (email: string, role: 'admin' | 'parent' | 'teacher') => {
     const newState: AuthState = {
       isAuthenticated: true,
       role,
       email,
-      magicLinkToken: magicLinkToken || null,
     };
     setAuthState(newState);
     saveAuthState(newState);
@@ -88,7 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAuthenticated: false,
       role: null,
       email: null,
-      magicLinkToken: null,
     };
     setAuthState(newState);
     clearAuthState();
